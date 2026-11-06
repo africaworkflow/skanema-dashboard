@@ -165,14 +165,17 @@ function OnboardingContent() {
       <div className="hidden lg:flex lg:w-[42%] bg-gray-900 flex-col justify-between p-12 relative overflow-hidden sticky top-0 h-screen">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-24 -translate-x-24" />
-        <div className="flex items-center gap-2.5 relative">
-          <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-          </div>
-          <span className="text-white text-lg font-semibold">Skanema</span>
-        </div>
+        {/* Logo Skanema (identique à la landing) — renvoie vers l'accueil */}
+        <a href="https://www.skanema.com" aria-label="Retour à l'accueil Skanema" className="flex items-center gap-3 relative self-start hover:opacity-80 transition-opacity">
+          <svg width="26" height="34" viewBox="0 0 52 82" aria-hidden="true">
+            <g fill="#DC2626" stroke="#DC2626" strokeWidth="5" strokeLinejoin="round">
+              <polygon points="4,18 22,7 22,52 4,63" />
+              <polygon points="31,36 49,25 49,69 31,80" />
+            </g>
+            <circle cx="39" cy="67" r="4" fill="#111827" />
+          </svg>
+          <span className="text-white" style={{ fontFamily: 'Montserrat, Inter, sans-serif', fontWeight: 900, fontSize: 22, letterSpacing: '-.02em', textTransform: 'uppercase', lineHeight: .98 }}>Skanema</span>
+        </a>
         <div className="relative">
           <div className="text-white/20 text-6xl font-serif leading-none mb-4">"</div>
           <p className="text-white text-lg font-medium leading-relaxed mb-6">
@@ -222,7 +225,7 @@ function OnboardingContent() {
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Choisissez votre plan</h1>
-              <p className="text-sm text-gray-400 mb-6">Notre équipe vous contactera pour l'activation et le paiement Wave.</p>
+              <p className="text-sm text-gray-400 mb-6">Vous ne paierez rien pour l'instant.</p>
               <div className="space-y-3 mb-6">
                 {PLANS.map(p => {
                   const active = selectedPlan === p.id
