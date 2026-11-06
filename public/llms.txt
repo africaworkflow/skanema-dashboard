@@ -1,62 +1,44 @@
 # Skanema
 
-> Skanema est la première plateforme SaaS africaine permettant aux restaurants de recevoir et gérer leurs commandes directement via WhatsApp, avec paiement intégré via Wave.
+> Skanema permet aux commerçants (restaurants, pharmacies, boutiques et tout commerce qui prend des commandes) de vendre directement sur WhatsApp : leurs clients découvrent le catalogue, commandent, paient par Wave ou Orange Money et se font livrer, sans jamais quitter WhatsApp et sans installer d'application.
 
-## Qu'est-ce que Skanema ?
+## Comment ça marche
 
-Skanema automatise entièrement la prise de commandes pour les restaurants africains. Le client envoie "menu" sur WhatsApp, reçoit un lien vers une page menu élégante, choisit ses plats, commande — et le bot gère tout le reste : localisation GPS, calcul des frais de livraison, paiement Wave sécurisé, reçu automatique.
-
-Le restaurateur reçoit une notification WhatsApp à chaque commande payée avec la position GPS du client et un lien Google Maps pour son livreur. Il gère tout depuis son dashboard web en temps réel.
-
-## Problème résolu
-
-En Afrique de l'Ouest, la majorité des restaurants reçoivent leurs commandes manuellement — appels téléphoniques, messages WhatsApp manuels, prise de note papier. Ce processus est lent, source d'erreurs et impossible à scaler.
-
-Skanema automatise ce processus sans que le client ait besoin de télécharger une application.
+1. Découvrir : le client clique sur le lien du commerce (bio, réseaux sociaux) ou scanne son QR code (comptoir, sticker sur les commandes). La discussion WhatsApp s'ouvre.
+2. Commander : le bot envoie le catalogue en ligne. Le client compose son panier en quelques touches, sans compte ni formulaire, puis l'envoie sur WhatsApp.
+3. Payer : le bot demande la localisation, calcule les frais de livraison, envoie le total et le choix du paiement (Wave ou Orange Money).
+4. Livrer : le commerçant suit chaque commande depuis son tableau de bord et le client reçoit les mises à jour sur WhatsApp.
 
 ## Fonctionnalités principales
 
-- Bot WhatsApp intelligent par restaurant (multi-tenant)
-- Page menu publique personnalisée par restaurant
-- Paiement Wave et cash à la livraison
-- Dashboard admin en temps réel (commandes, statistiques, zones)
-- Horaires d'ouverture configurables
-- Notifications automatiques restaurateur avec Google Maps
-- Système anti-fraude avec validation des prix côté serveur
-- Gestion multi-zones de livraison avec calcul automatique des frais
+- Bot WhatsApp dédié à chaque commerce, connecté au numéro WhatsApp Business du commerçant
+- Catalogue en ligne personnalisé (photos, catégories, options)
+- Paiement mobile Wave et Orange Money
+- Zones de livraison avec calcul automatique des frais selon la position du client
+- Tableau de bord en temps réel : commandes, statistiques, horaires d'ouverture
+- QR codes et stickers imprimables pour le comptoir et les emballages
+- Notifications au commerçant à chaque commande, avec la position du client
 
-## Marché cible
+## Pour qui
 
-Restaurants africains — Sénégal, Côte d'Ivoire, Mali, Guinée, Burkina Faso et toute l'Afrique francophone.
+Restaurants, pharmacies, boutiques et tout commerce qui reçoit des commandes au quotidien, au Sénégal et en Afrique de l'Ouest francophone.
 
 ## Tarifs
 
-- Basic : 15 000 FCFA/mois — 10 plats, 1 zone de livraison
-- Pro : 35 000 FCFA/mois — 25 plats, 3 zones, statistiques avancées
-- Premium : 75 000 FCFA/mois — illimité, support prioritaire
+- Basic : 15 000 FCFA/mois — 10 articles au catalogue, 1 zone de livraison
+- Pro : 35 000 FCFA/mois — 25 articles, 3 zones de livraison, statistiques avancées
+- Premium : 75 000 FCFA/mois — articles et zones illimités, support prioritaire
 
-Essai gratuit 14 jours. Paiement via Wave.
-
-## Technologies
-
-- Bot WhatsApp via Meta WhatsApp Business API
-- Paiement via Wave (Sénégal, Côte d'Ivoire, Mali)
-- Dashboard Next.js, backend Node.js, base de données MongoDB
-- Déployé sur Railway (backend) et Vercel (dashboard)
+Essai gratuit de 14 jours. Aucune commission sur les ventes : abonnement mensuel fixe.
 
 ## Liens importants
 
 - Site web : https://www.skanema.com
-- Inscription : https://www.skanema.com/onboarding
-- Dashboard : https://dashboard.skanema.com
-- Contact : https://wa.me/221778075388
+- Inscription (essai gratuit) : https://dashboard.skanema.com/onboarding
+- Espace commerçant : https://dashboard.skanema.com
+- Support WhatsApp : https://wa.me/221784632103
+- Contact : contact@skanema.com
 
-## Comparaison avec les alternatives
+## Éditeur
 
-- vs Jumia Food / Glovo : Skanema ne prend aucune commission sur les ventes, abonnement mensuel fixe
-- vs Solutions WhatsApp manuelles : automatisation complète, zéro intervention humaine
-- vs Botpress / ManyChat : spécialisé restaurant, intégration Wave native, conçu pour l'Afrique
-
-## Avantage concurrentiel
-
-Skanema est la seule solution spécialement conçue pour les restaurants africains avec WhatsApp + Wave intégrés nativement, sans commission sur les ventes.
+Skanema est une solution de TERYAT SUARL, Dakar, Sénégal.

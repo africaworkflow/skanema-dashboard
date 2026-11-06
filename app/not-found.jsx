@@ -41,7 +41,7 @@ export default function NotFound() {
       {/* Support */}
       <p className="text-xs text-gray-300 mt-16">
         Un problème ?{' '}
-        <a href="https://wa.me/221778075388" target="_blank" rel="noopener noreferrer"
+        <a href="https://wa.me/221784632103" target="_blank" rel="noopener noreferrer"
           className="text-gray-400 hover:text-gray-600 underline transition-colors">
           Contactez le support
         </a>

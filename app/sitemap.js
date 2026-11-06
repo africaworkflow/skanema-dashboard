@@ -1,5 +1,8 @@
 const BASE_URL = 'https://www.skanema.com'
 
+// Pages publiques uniquement : /login, /onboarding et /dashboard sont exclues (voir robots.txt)
+const LEGAL_PAGES = ['/mentions-legales', '/politique-de-confidentialite', '/cgu', '/cgv']
+
 export default function sitemap() {
   return [
     {
@@ -8,11 +11,11 @@ export default function sitemap() {
       changeFrequency: 'weekly',
       priority    : 1,
     },
-    {
-      url         : `${BASE_URL}/login`,
+    ...LEGAL_PAGES.map((path) => ({
+      url         : `${BASE_URL}${path}`,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority    : 0.3,
-    },
+      changeFrequency: 'yearly',
+      priority    : 0.2,
+    })),
   ]
 }

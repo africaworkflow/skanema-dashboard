@@ -1,8 +1,8 @@
 import { LandingPage } from '@/components/landing/LandingPage'
 
 export const metadata = {
-  title      : 'Skanema — Commandes WhatsApp pour restaurants africains',
-  description: 'Automatisez vos commandes WhatsApp. Bot intelligent, paiement Wave, dashboard en temps réel. Essai gratuit 14 jours.',
+  title      : { absolute: 'Skanema — Commandes et paiements WhatsApp pour commerçants' },
+  description: 'Vos clients découvrent, commandent, paient par Wave ou Orange Money et se font livrer, sans jamais quitter WhatsApp. Pour restaurants, pharmacies et boutiques. Essai gratuit 14 jours.',
   alternates : { canonical: 'https://www.skanema.com' },
 }
 
@@ -12,7 +12,7 @@ const jsonLd = {
   name         : 'Skanema',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web, iOS, Android',
-  description  : 'Plateforme SaaS permettant aux restaurants africains de recevoir et gérer leurs commandes directement via WhatsApp avec paiement Wave intégré.',
+  description  : 'Plateforme permettant aux commerçants (restaurants, pharmacies, boutiques) de recevoir commandes et paiements Wave ou Orange Money directement sur WhatsApp, avec catalogue en ligne, QR code et suivi de livraison.',
   url          : 'https://www.skanema.com',
   offers       : {
     '@type'   : 'AggregateOffer',
@@ -25,21 +25,18 @@ const jsonLd = {
     '@type': 'Organization',
     name   : 'Skanema',
     url    : 'https://www.skanema.com',
-    logo   : 'https://www.skanema.com/logo.png',
+    logo   : 'https://www.skanema.com/icon_SKANEMA.png',
     contactPoint: {
       '@type'      : 'ContactPoint',
       contactType  : 'customer support',
+      telephone    : '+221784632103',
+      email        : 'contact@skanema.com',
       availableLanguage: ['French'],
     },
     areaServed: [
       'Sénégal', 'Côte d\'Ivoire', 'Mali', 'Guinée',
       'Burkina Faso', 'Niger', 'Togo', 'Bénin',
     ],
-  },
-  aggregateRating: {
-    '@type'      : 'AggregateRating',
-    ratingValue  : '4.8',
-    reviewCount  : '50',
   },
 }
 
