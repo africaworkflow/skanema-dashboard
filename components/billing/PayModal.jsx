@@ -7,16 +7,22 @@ import { Flag } from './Flag'
 const fcfa = (n) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} FCFA`
 const day  = (d) => (d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—')
 
-// Logos officiels des opérateurs : fichiers fournis par les opérateurs, déposés dans public/payments/.
-// Tant qu'un fichier manque, une pastille aux couleurs de l'opérateur s'affiche à la place.
+// Logos officiels des opérateurs (public/payments/). Si un fichier manque, une pastille de couleur le remplace.
 const BRAND = {
-  wave  : { logo: '/payments/wave.png',         bg: '#1DC8F2', fg: '#fff', short: 'W'   },
-  om    : { logo: '/payments/orange-money.png', bg: '#FF7900', fg: '#fff', short: 'OM'  },
-  mtn   : { logo: '/payments/mtn-momo.png',     bg: '#FFCB05', fg: '#111', short: 'MTN' },
-  moov  : { logo: '/payments/moov-money.png',   bg: '#0066B3', fg: '#fff', short: 'M'   },
-  tmoney: { logo: '/payments/mixx-by-yas.png',  bg: '#FFE600', fg: '#111', short: 'Mx'  },
+  wave  : { bg: '#1DC8F2', fg: '#fff', short: 'W'   },
+  om    : { bg: '#FF7900', fg: '#fff', short: 'OM'  },
+  mtn   : { bg: '#FFCB05', fg: '#111', short: 'MTN' },
+  moov  : { bg: '#0066B3', fg: '#fff', short: 'M'   },
+  tmoney: { bg: '#FFE600', fg: '#111', short: 'Mx'  },
 }
-const brandOf = (id) => BRAND[id.split('_')[0]] || { bg: '#111', fg: '#fff', short: '?' }
+const LOGO = {
+  wave_sn: 'wave', wave_ci: 'wave',
+  om_sn: 'maxit-sn', om_sn_code: 'maxit-sn', om_ci: 'maxit', om_ml: 'maxit-ml', om_bf: 'orange-money',
+  mtn_ci: 'mtn-momo', mtn_bj: 'mtn-momo',
+  moov_bj: 'moov-flooz', moov_tg: 'moov-flooz', moov_bf: 'moov-money-bf',
+  tmoney_tg: 'mixx-tg',
+}
+const brandOf = (id) => ({ ...(BRAND[id.split('_')[0]] || { bg: '#111', fg: '#fff', short: '?' }), logo: LOGO[id] ? `/payments/${LOGO[id]}.png` : null })
 
 function OperatorLogo({ id, size = 36 }) {
   const b = brandOf(id)
@@ -25,7 +31,7 @@ function OperatorLogo({ id, size = 36 }) {
     <span className="rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0" style={{ width: size, height: size, background: b.bg, color: b.fg }}>{b.short}</span>
   )
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={b.logo} alt="" width={size} height={size} onError={() => setFailed(true)} className="rounded-lg object-contain flex-shrink-0 bg-white" style={{ width: size, height: size }} />
+  return <img src={b.logo} alt="" width={size} height={size} onError={() => setFailed(true)} className="rounded-[10px] object-cover flex-shrink-0 bg-white ring-1 ring-black/5" style={{ width: size, height: size }} />
 }
 
 // Ce que le client doit faire, par moyen de paiement
