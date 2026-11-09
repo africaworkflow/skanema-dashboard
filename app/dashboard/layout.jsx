@@ -1,11 +1,12 @@
 'use client'
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function DashboardLayout({ children }) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (loading) return
@@ -17,10 +18,11 @@ export default function DashboardLayout({ children }) {
     const isTrialExpired = sub.status === 'trial' && new Date() > new Date(sub.trialEnds)
     const isSuspended    = sub.status === 'suspended' || sub.status === 'cancelled'
 
-    if (isTrialExpired || isSuspended) {
-      router.replace('/abonnement-expire')
+    // La page abonnement reste accessible pour pouvoir payer
+    if ((isTrialExpired || isSuspended) && pathname !== '/dashboard/abonnement') {
+      router.replace('/dashboard/abonnement')
     }
-  }, [user, loading, router])
+  }, [user, loading, router, pathname])
 
   if (loading || !user) return (
     <div className="min-h-screen bg-white flex items-center justify-center">

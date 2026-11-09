@@ -58,6 +58,17 @@ export function AuthProvider({ children }) {
     return data
   }
 
+  // Recharge le profil depuis l'API (ex. après un paiement d'abonnement)
+  const refresh = async () => {
+    const res = await api.get('/api/auth/me')
+    const d = res.data.data
+    let merged = d
+    try { merged = { ...JSON.parse(Cookies.get('skanema_user') || '{}'), ...d } } catch (_) {}
+    Cookies.set('skanema_user', JSON.stringify(merged), { expires: 7, sameSite: 'lax' })
+    setUser(merged)
+    return merged
+  }
+
   const logout = () => {
     const domains = ['.skanema.com', 'skanema.com', 'dashboard.skanema.com', undefined]
     domains.forEach(domain => {
@@ -76,7 +87,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   )

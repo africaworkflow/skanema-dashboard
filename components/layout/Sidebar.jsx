@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import {
   LayoutDashboard, ShoppingBag, UtensilsCrossed, BarChart3,
-  MapPin, MessageCircle, Settings, LogOut, X, Wifi, WifiOff, Clock, CreditCard
+  MapPin, MessageCircle, Settings, LogOut, X, Wifi, WifiOff, Clock, CreditCard, BadgeCheck
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useEffect } from 'react'
@@ -22,6 +22,7 @@ const NAV_CONFIG = [
   { href: '/dashboard/whatsapp',   label: 'WhatsApp',        icon: MessageCircle  },
   { href: '/dashboard/horaires',   label: 'Horaires',        icon: Clock          },
   { href: '/dashboard/parametres', label: 'Paramètres',      icon: Settings       },
+  { href: '/dashboard/abonnement', label: 'Abonnement',      icon: BadgeCheck     },
 ]
 
 function NavItem({ href, label, icon: Icon, onClick }) {
