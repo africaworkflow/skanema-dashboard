@@ -19,6 +19,9 @@ const SEEN_KEY      = 'skanema_alerted_orders'
 const SEEN_MAX      = 300
 const ORDERS_EVENT  = 'skanema:orders'
 export const OPEN_ORDER_EVENT = 'skanema:open-order'
+const SOUND_URL    = '/notification.mp3'
+// 0,05 s de silence : sert à débloquer le son au premier toucher sans rien faire entendre
+const SILENCE      = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA'
 
 const needsAlert = (o) =>
   o.status === 'PAID' || (o.status === 'CONFIRMED' && o.payment?.provider === 'cash')
@@ -50,7 +53,7 @@ export function NewOrderAlert() {
 
   const getAudio = () => {
     if (!audioRef.current && typeof Audio !== 'undefined') {
-      audioRef.current = new Audio('/notification.mp3')
+      audioRef.current = new Audio(SOUND_URL)
       audioRef.current.volume = 0.9
     }
     return audioRef.current
@@ -60,6 +63,7 @@ export function NewOrderAlert() {
     const a = getAudio()
     if (!a) return
     try {
+      if (!a.src.endsWith(SOUND_URL)) a.src = SOUND_URL
       a.currentTime = 0
       const p = a.play()
       if (p && p.then) p.then(() => setBlocked(false)).catch((e) => { if (e?.name === 'NotAllowedError') setBlocked(true) })
@@ -100,15 +104,20 @@ export function NewOrderAlert() {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  // Débloque le son au premier geste sur la page (le navigateur l'exige)
+  // Débloque le son au premier geste sur la page (le navigateur l'exige).
+  // On joue un court silence dans le même lecteur, puis on remet le son des pièces :
+  // couper le volume (muted) ne suffit pas sur iPhone, où le son des pièces sortait au premier toucher.
   useEffect(() => {
     const unlock = () => {
       const a = getAudio()
       if (a && a.paused) {
-        a.muted = true
-        const p = a.play()
-        if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false }).catch(() => { a.muted = false })
-        else a.muted = false
+        a.src = SILENCE
+        const restore = () => { try { if (a.src === SILENCE) { a.pause(); a.src = SOUND_URL; a.load() } } catch (_) {} }
+        try {
+          const p = a.play()
+          if (p && p.then) p.then(restore, restore)
+          else restore()
+        } catch (_) { restore() }
       }
       window.removeEventListener('pointerdown', unlock)
       window.removeEventListener('keydown', unlock)
