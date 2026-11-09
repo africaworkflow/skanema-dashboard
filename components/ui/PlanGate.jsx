@@ -7,13 +7,13 @@ const PLAN_ORDER = { basic: 0, pro: 1, premium: 2 }
 const PLAN_FEATURES = {
   pro: {
     label   : 'Pro',
-    price   : '35 000 FCFA/mois',
-    features: ['25 plats au menu', 'Statistiques avancées', '3 zones de livraison', 'Reçu PDF + email'],
+    price   : '35 000 FCFA / 30 jours',
+    features: ['25 articles au menu', '3 zones de livraison', 'Statistiques des ventes', 'Reçus par e-mail'],
   },
   premium: {
     label   : 'Premium',
-    price   : '75 000 FCFA/mois',
-    features: ['Plats illimités', 'Zones illimitées', 'Support prioritaire', 'Onboarding personnalisé'],
+    price   : '75 000 FCFA / 30 jours',
+    features: ['Articles et zones illimités', 'Votre menu mis en ligne par notre équipe', 'Kit QR imprimé pour le comptoir et les tables', 'Ligne WhatsApp directe avec l\'équipe Skanema'],
   },
 }
 
@@ -87,7 +87,7 @@ export function PlanGate({ currentPlan = 'basic', requiredPlan = 'pro', feature,
                 Plus tard
               </button>
               <button
-                onClick={() => { setShowModal(false); window.location.href = '/dashboard/parametres' }}
+                onClick={() => { setShowModal(false); window.location.href = '/dashboard/abonnement' }}
                 className="btn-primary flex-1 text-xs py-2 flex items-center justify-center gap-1.5"
               >
                 Passer au plan {upgrade.label}

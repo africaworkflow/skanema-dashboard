@@ -9,12 +9,13 @@ import Link from 'next/link'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.skanema.com'
 
-// Essai gratuit (limites réduites) ou offre payante réglée dès l'inscription
+// Premium d'abord (l'offre complète), puis Pro (pour démarrer), puis l'essai gratuit — l'essai reste coché par défaut
 const PLANS = [
-  { id: 'essai',   name: 'Essai gratuit', price: 0,     period: '14 jours', features: ['10 articles au catalogue', '1 zone de livraison', 'Bot WhatsApp et paiement mobile'] },
-  { id: 'pro',     name: 'Pro',           price: 35000, period: '/mois', popular: true, features: ['25 articles au catalogue', '3 zones de livraison', 'Statistiques avancées', 'Reçus par e-mail'] },
-  { id: 'premium', name: 'Premium',       price: 75000, period: '/mois', features: ['Articles illimités', 'Zones illimitées', 'Statistiques avancées', 'Support prioritaire'] },
+  { id: 'premium', name: 'Premium',       price: 75000, period: '/mois', badge: 'Le plus complet', dark: true, features: ['Tout Pro', 'Illimité', 'Menu mis en ligne pour vous', 'Kit QR imprimé', 'Ligne WhatsApp directe'] },
+  { id: 'pro',     name: 'Pro',           price: 35000, period: '/mois', badge: 'Pour démarrer', features: ['25 articles', '3 zones de livraison', 'Statistiques', 'Reçus par e-mail'] },
+  { id: 'essai',   name: 'Essai gratuit', price: 0,     period: '14 jours', features: ['10 articles', '1 zone de livraison', 'Commandes et paiement WhatsApp'] },
 ]
+const TRIAL_PLAN = PLANS.find(p => p.id === 'essai')
 
 function fmt(n) { return new Intl.NumberFormat('fr-FR').format(n).replace(/\u202f|\u00a0/g, ' ') + ' FCFA' }
 
@@ -79,7 +80,7 @@ function OnboardingContent() {
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
-  const plan  = PLANS.find(p => p.id === selectedPlan) || PLANS[0]
+  const plan  = PLANS.find(p => p.id === selectedPlan) || TRIAL_PLAN
   const isPaid = plan.price > 0
   const passOk = form.password.length >= 8 && /[A-Z]/.test(form.password) && /[a-z]/.test(form.password) && /[0-9]/.test(form.password)
 
@@ -252,16 +253,18 @@ function OnboardingContent() {
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
               <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-1">Choisissez votre offre</h1>
               <p className="hidden lg:block text-sm text-gray-400 mb-6">Commencez gratuitement, ou démarrez directement avec tout le potentiel de Skanema.</p>
-              <div className="space-y-2.5 lg:space-y-3 mb-6" role="radiogroup" aria-label="Offre">
+              <div className="space-y-3.5 lg:space-y-4 pt-2 mb-6" role="radiogroup" aria-label="Offre">
                 {PLANS.map(p => {
                   const active = selectedPlan === p.id
                   return (
                     <button key={p.id} role="radio" aria-checked={active} onClick={() => setSelectedPlan(p.id)}
-                      className={`w-full text-left rounded-2xl border-2 px-3.5 py-3 lg:p-4 transition-all duration-200 ${active ? 'border-gray-900 bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                      className={`relative w-full text-left rounded-2xl border-2 px-3.5 lg:px-4 ${p.badge ? 'pt-4 pb-3 lg:pt-5 lg:pb-4' : 'py-3 lg:py-4'} transition-all duration-200 ${active ? 'border-gray-900 bg-white' : p.dark ? 'border-gray-300 bg-white hover:border-gray-400' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                      {p.badge && (
+                        <span className={`absolute -top-2.5 left-3.5 text-2xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${p.dark ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>{p.badge}</span>
+                      )}
                       <div className="flex items-start justify-between gap-3 mb-1.5 lg:mb-2.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-bold text-gray-900">{p.name}</p>
-                          {p.popular && <span className="text-xs bg-gray-900 text-white px-2 py-0.5 rounded-full font-medium">Populaire</span>}
                         </div>
                         <div className="flex items-center gap-2.5 flex-shrink-0">
                           <span className="font-bold text-gray-900 whitespace-nowrap">

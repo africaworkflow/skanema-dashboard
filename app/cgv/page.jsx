@@ -73,6 +73,7 @@ export default function CGV() {
               </div>
             ))}
           </div>
+          <P>L'offre Premium comprend en outre la mise en ligne du menu par l'équipe Skanema, un kit de QR codes imprimés pour le comptoir et les tables remis lors de la première souscription, et une ligne WhatsApp directe avec l'équipe Skanema.</P>
           <P>Les tarifs sont exprimés en Francs CFA (XOF) toutes taxes comprises. TERYAT SUARL se réserve le droit de modifier ses tarifs avec un préavis de 30 jours.</P>
         </Section>
 

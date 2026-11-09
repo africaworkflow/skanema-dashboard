@@ -195,7 +195,7 @@ export default function MenuPage() {
       actions={
         <PlanGate
           currentPlan={currentPlan}
-          requiredPlan={atLimit && currentPlan !== 'premium' ? 'pro' : 'basic'}
+          requiredPlan={atLimit && currentPlan !== 'premium' ? (currentPlan === 'pro' ? 'premium' : 'pro') : 'basic'}
           feature={`Ajouter plus de ${maxItems} plats`}
         >
           <button

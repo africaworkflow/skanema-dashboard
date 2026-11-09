@@ -11,6 +11,13 @@ const SUPPORT_WA = '221784632103'
 const fcfa = (n) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} FCFA`
 const day  = (d) => (d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—')
 const PLAN_NAME = { basic: 'Essai', pro: 'Pro', premium: 'Premium' }
+// Premium d'abord : c'est l'offre complète, Pro est l'offre pour démarrer
+const ORDER   = { premium: 0, pro: 1 }
+const DISPLAY = {
+  premium: { badge: 'Le plus complet', tagline: 'Pour les commerces qui tournent' },
+  pro    : { badge: 'Pour démarrer',   tagline: 'Une carte courte, votre quartier' },
+}
+const perDay = (price) => Math.round(price / 30 / 100) * 100
 
 export default function AbonnementPage() {
   return (
@@ -146,31 +153,47 @@ function Abonnement() {
             <h2 className="text-sm font-semibold text-gray-900 mb-3">
               {data.subscription.state === 'active' ? 'Renouveler ou changer de plan' : 'Choisissez votre plan'}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
-              {data.plans.map((plan) => {
-                const current = plan.id === data.subscription.plan && ['active', 'overdue'].includes(data.subscription.state)
-                const featured = plan.id === 'pro'
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6 max-w-2xl pt-2">
+              {[...data.plans].sort((x, y) => (ORDER[x.id] ?? 9) - (ORDER[y.id] ?? 9)).map((plan) => {
+                const active   = ['active', 'overdue'].includes(data.subscription.state)
+                const current  = active && plan.id === data.subscription.plan
+                const switching = active && !current && ['pro', 'premium'].includes(data.subscription.plan)
+                const dark     = plan.id === 'premium'
+                const look     = DISPLAY[plan.id] || {}
+                const badge    = plan.badge || look.badge
+                const tagline  = plan.tagline || look.tagline
                 return (
-                  <div key={plan.id} className={`bg-white rounded-2xl p-5 flex flex-col relative ${featured ? 'border-2 border-gray-900 shadow-sm' : 'border border-gray-100'}`}>
-                    {featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-2xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">Recommandé</span>}
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-xs font-medium text-gray-500">{plan.name}</p>
-                      {current && <span className="text-2xs font-medium bg-green-50 text-green-700 px-2 py-0.5 rounded-full">Votre plan</span>}
+                  <div key={plan.id} className={`rounded-2xl p-5 flex flex-col relative ${dark ? 'bg-gray-900 text-white shadow-lg' : 'bg-white border border-gray-200'}`}>
+                    {badge && (
+                      <span className={`absolute -top-3 left-5 text-2xs font-semibold px-3 py-1 rounded-full whitespace-nowrap ${dark ? 'bg-white text-gray-900 border border-gray-900' : 'bg-white text-gray-600 border border-gray-200'}`}>{badge}</span>
+                    )}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-xs font-medium ${dark ? 'text-gray-300' : 'text-gray-500'}`}>{plan.name}</p>
+                      {current && <span className={`text-2xs font-medium px-2 py-0.5 rounded-full ${dark ? 'bg-white/10 text-green-300' : 'bg-green-50 text-green-700'}`}>Votre plan</span>}
                     </div>
-                    <p className="text-2xl font-bold text-gray-900">{fcfa(plan.price)}</p>
-                    <p className="text-xs text-gray-400 mb-4">pour 30 jours</p>
+                    {tagline && <p className={`text-xs mt-0.5 ${dark ? 'text-gray-400' : 'text-gray-400'}`}>{tagline}</p>}
+                    <p className={`text-2xl font-bold mt-3 ${dark ? 'text-white' : 'text-gray-900'}`}>{fcfa(plan.price)}</p>
+                    <p className={`text-xs mb-4 ${dark ? 'text-gray-400' : 'text-gray-400'}`}>pour 30 jours · ≈ {fcfa(perDay(plan.price))} par jour</p>
+                    {plan.intro && <p className={`text-xs font-semibold mb-2 ${dark ? 'text-gray-200' : 'text-gray-700'}`}>{plan.intro}</p>}
                     <ul className="space-y-2 flex-1 mb-5">
                       {plan.features.map((f) => (
-                        <li key={f} className="flex items-center gap-2 text-xs text-gray-600"><CheckCircle2 size={13} className="text-green-500 flex-shrink-0" />{f}</li>
+                        <li key={f} className={`flex items-start gap-2 text-xs ${dark ? 'text-gray-200' : 'text-gray-600'}`}>
+                          <CheckCircle2 size={13} className={`flex-shrink-0 mt-px ${dark ? 'text-green-400' : 'text-green-500'}`} />{f}
+                        </li>
                       ))}
                     </ul>
                     <button
                       onClick={() => pay(plan.id)}
                       disabled={!data.onlinePayment || Boolean(paying)}
-                      className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${featured ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
+                      className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${dark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
                     >
-                      {current ? 'Renouveler' : 'Payer'} {fcfa(plan.price)}
+                      {current ? 'Renouveler' : switching ? `Passer à ${plan.name}` : 'Payer'} {fcfa(plan.price)}
                     </button>
+                    {switching && (
+                      <p className={`text-2xs mt-2 text-center ${dark ? 'text-gray-400' : 'text-gray-400'}`}>
+                        {plan.id === 'premium' ? 'Premium s\'applique tout de suite, vos jours restants inclus.' : 'Pro s\'applique dès le paiement.'}
+                      </p>
+                    )}
                   </div>
                 )
               })}
@@ -186,8 +209,8 @@ function Abonnement() {
             )}
 
             {data.onlinePayment ? (
-              <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-4 text-center max-w-2xl">
-                <ShieldCheck size={13} /> Mobile money · {(data.paymentMethods || []).map((c) => c.name).join(', ')} · Sans engagement
+              <p className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-400 mt-4 text-center max-w-2xl">
+                <ShieldCheck size={13} /> Remboursé dès une commande par jour · Mobile money · {(data.paymentMethods || []).map((c) => c.name).join(', ')} · Sans engagement
               </p>
             ) : (
               <div className="mt-4 text-center text-xs text-gray-500">
