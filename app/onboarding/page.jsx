@@ -1,5 +1,6 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowRight, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle2, Smartphone, Check, QrCode, Wallet, BellRing } from 'lucide-react'
 import Cookies from 'js-cookie'
@@ -42,6 +43,22 @@ function PasswordStrength({ password }) {
   )
 }
 
+function StepOneAction({ isPaid, plan, onNext }) {
+  return (
+    <>
+      <p className="text-xs text-gray-500 text-center mb-2.5" aria-live="polite">
+        {isPaid
+          ? <>Paiement de <b className="text-gray-900">{fmt(plan.price)}</b> par mobile money à la fin · Sans engagement</>
+          : <>Aucun paiement pendant 14 jours · Sans engagement</>}
+      </p>
+      <button onClick={onNext}
+        className="w-full bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all">
+        {isPaid ? `Continuer avec ${plan.name}` : 'Commencer l\'essai gratuit'} <ArrowRight size={18} />
+      </button>
+    </>
+  )
+}
+
 function OnboardingContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
@@ -59,6 +76,8 @@ function OnboardingContent() {
   const [otpLoading,   setOtpLoading]   = useState(false)
   const [countdown,    setCountdown]    = useState(0)
 
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
   const plan  = PLANS.find(p => p.id === selectedPlan) || PLANS[0]
   const isPaid = plan.price > 0
   const passOk = form.password.length >= 8 && /[A-Z]/.test(form.password) && /[a-z]/.test(form.password) && /[0-9]/.test(form.password)
@@ -224,10 +243,10 @@ function OnboardingContent() {
           {/* ── ÉTAPE 1 — Plan ── */}
           {step === 1 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
-              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Choisissez votre offre</h1>
               <p className="text-sm text-gray-400 mb-6">Commencez gratuitement, ou démarrez directement avec tout le potentiel de Skanema.</p>
-              <div className="space-y-3 mb-4" role="radiogroup" aria-label="Offre">
+              <div className="space-y-3 mb-6" role="radiogroup" aria-label="Offre">
                 {PLANS.map(p => {
                   const active = selectedPlan === p.id
                   return (
@@ -259,22 +278,23 @@ function OnboardingContent() {
                   )
                 })}
               </div>
-              <p className="text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3 mb-6 leading-relaxed" aria-live="polite">
-                {isPaid
-                  ? <>Vous réglerez <b className="text-gray-900">{fmt(plan.price)}</b> par mobile money à la fin de l'inscription (Wave, Orange Money, MTN…). Sans engagement.</>
-                  : <>Aucun paiement pendant 14 jours. Vous passerez à Pro ou Premium quand vous le souhaitez.</>}
-              </p>
-              <button onClick={() => setStep(2)}
-                className="w-full bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all">
-                Continuer <ArrowRight size={18} />
-              </button>
+              {/* Bouton toujours visible : à sa place sur ordinateur, collé en bas de l'écran sur téléphone */}
+              <div className="hidden lg:block mt-2"><StepOneAction isPaid={isPaid} plan={plan} onNext={() => setStep(2)} /></div>
+              <div className="h-32 lg:hidden" aria-hidden="true" />
+              {mounted && createPortal(
+                <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-100 px-5 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]"
+                     style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+                  <div className="max-w-md mx-auto"><StepOneAction isPaid={isPaid} plan={plan} onNext={() => setStep(2)} /></div>
+                </div>,
+                document.body
+              )}
             </div>
           )}
                 
           {/* ── ÉTAPE 2 — Vérification téléphone ── */}
           {step === 2 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
-              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
               <div className="flex items-center gap-3 mb-1">
                 <div className="w-10 h-10 rounded-xl bg-gray-900 flex items-center justify-center">
                   <Smartphone size={18} className="text-white" />
@@ -371,7 +391,7 @@ function OnboardingContent() {
           {/* ── ÉTAPE 3 — Compte ── */}
           {step === 3 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
-              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Créez votre compte</h1>
               <p className="text-sm text-gray-400 mb-6">
                 {isPaid
