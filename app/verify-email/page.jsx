@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.skanema.com'
 
@@ -34,7 +35,7 @@ function VerifyEmailContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">Skanema</div>
+          <BrandLogo className="mb-3" />
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-8 text-center">
           {status === 'loading' && (

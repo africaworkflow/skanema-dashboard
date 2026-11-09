@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Loader2, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.skanema.com'
 
@@ -35,7 +36,7 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">Skanema</div>
+          <BrandLogo className="mb-3" />
           <p className="text-sm text-gray-400">Réinitialisation du mot de passe</p>
         </div>
 

@@ -31,7 +31,7 @@ function PasswordStrength({ password }) {
   const color = score <= 1 ? '#ef4444' : score === 2 ? '#f97316' : '#16a34a'
   const label = score === 0 ? '8 caractères minimum' : score === 3 ? 'Fort — mot de passe sécurisé' : 'Ajoutez ' + missing.join(' et ')
   return (
-    <div className="mt-2.5 space-y-1.5">
+    <div className="mt-2 space-y-1 lg:mt-2.5 lg:space-y-1.5">
       <div className="flex gap-1.5">
         {[1,2,3].map(i => (
           <div key={i} className="h-1.5 flex-1 rounded-full transition-all duration-300"
@@ -46,13 +46,13 @@ function PasswordStrength({ password }) {
 function StepOneAction({ isPaid, plan, onNext }) {
   return (
     <>
-      <p className="text-xs text-gray-500 text-center mb-2.5" aria-live="polite">
+      <p className="text-xs text-gray-500 text-center mb-2 lg:mb-2.5" aria-live="polite">
         {isPaid
           ? <>Paiement de <b className="text-gray-900">{fmt(plan.price)}</b> par mobile money à la fin · Sans engagement</>
           : <>Aucun paiement pendant 14 jours · Sans engagement</>}
       </p>
       <button onClick={onNext}
-        className="w-full bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all">
+        className="w-full bg-gray-900 text-white font-semibold py-3.5 lg:py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all">
         {isPaid ? `Continuer avec ${plan.name}` : 'Commencer l\'essai gratuit'} <ArrowRight size={18} />
       </button>
     </>
@@ -224,11 +224,12 @@ function OnboardingContent() {
       </div>
 
       {/* ── Panneau droit ── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 lg:px-16">
+      <div className="flex-1 flex flex-col items-center justify-start lg:justify-center px-5 pt-5 pb-4 lg:py-10 lg:px-16">
         <div className="w-full max-w-md">
 
           {/* Indicateur étapes */}
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center justify-between gap-2 mb-5 lg:mb-8">
+          <div className="flex items-center gap-2">
             {STEPS.map((s, i) => (
               <div key={s.n} className="flex items-center gap-2">
                 <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold transition-all duration-300 ${
@@ -242,20 +243,22 @@ function OnboardingContent() {
               </div>
             ))}
           </div>
+            {step === 1 && <Link href="/login" className="lg:hidden text-xs font-medium text-gray-900 whitespace-nowrap">Se connecter</Link>}
+          </div>
 
           {/* ── ÉTAPE 1 — Plan ── */}
           {step === 1 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Choisissez votre offre</h1>
-              <p className="text-sm text-gray-400 mb-6">Commencez gratuitement, ou démarrez directement avec tout le potentiel de Skanema.</p>
-              <div className="space-y-3 mb-6" role="radiogroup" aria-label="Offre">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-3 lg:mb-1">Choisissez votre offre</h1>
+              <p className="hidden lg:block text-sm text-gray-400 mb-6">Commencez gratuitement, ou démarrez directement avec tout le potentiel de Skanema.</p>
+              <div className="space-y-2.5 lg:space-y-3 mb-6" role="radiogroup" aria-label="Offre">
                 {PLANS.map(p => {
                   const active = selectedPlan === p.id
                   return (
                     <button key={p.id} role="radio" aria-checked={active} onClick={() => setSelectedPlan(p.id)}
-                      className={`w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 ${active ? 'border-gray-900 bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
-                      <div className="flex items-start justify-between gap-3 mb-2.5">
+                      className={`w-full text-left rounded-2xl border-2 px-3.5 py-3 lg:p-4 transition-all duration-200 ${active ? 'border-gray-900 bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
+                      <div className="flex items-start justify-between gap-3 mb-1.5 lg:mb-2.5">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-bold text-gray-900">{p.name}</p>
                           {p.popular && <span className="text-xs bg-gray-900 text-white px-2 py-0.5 rounded-full font-medium">Populaire</span>}
@@ -270,7 +273,7 @@ function OnboardingContent() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1">
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 lg:gap-y-1">
                         {p.features.map((f, i) => (
                           <span key={i} className={`text-xs flex items-center gap-1 ${active ? 'text-gray-600' : 'text-gray-400'}`}>
                             <Check size={11} className={active ? 'text-green-600' : 'text-gray-300'} /> {f}
@@ -283,9 +286,9 @@ function OnboardingContent() {
               </div>
               {/* Bouton toujours visible : à sa place sur ordinateur, collé en bas de l'écran sur téléphone */}
               <div className="hidden lg:block mt-2"><StepOneAction isPaid={isPaid} plan={plan} onNext={() => setStep(2)} /></div>
-              <div className="h-32 lg:hidden" aria-hidden="true" />
+              <div className="h-28 lg:hidden" aria-hidden="true" />
               {mounted && createPortal(
-                <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-100 px-5 pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]"
+                <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-100 px-5 pt-2.5 shadow-[0_-4px_16px_rgba(0,0,0,0.04)]"
                      style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
                   <div className="max-w-md mx-auto"><StepOneAction isPaid={isPaid} plan={plan} onNext={() => setStep(2)} /></div>
                 </div>,
@@ -400,55 +403,52 @@ function OnboardingContent() {
           {step === 3 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}`}</style>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Créez votre compte</h1>
-              <p className="text-sm text-gray-400 mb-6">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">Créez votre compte</h1>
+              <p className="text-sm text-gray-400 mb-4 lg:mb-6">
                 {isPaid
                   ? <>Plan <span className="font-semibold text-gray-700">{plan.name}</span> · {fmt(plan.price)}/mois, payé à l'étape suivante</>
                   : <><span className="font-semibold text-gray-700">Essai gratuit</span> · 14 jours, sans paiement</>}
                 <button onClick={() => { setStep(1); setError('') }} className="text-gray-400 hover:text-gray-600 underline ml-2 text-xs">Changer</button>
               </p>
 
-              <div className="space-y-4">
-                {/* Numéro vérifié — readonly */}
-                <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
-                  <CheckCircle2 size={16} className="text-green-500 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs font-medium text-green-800">Numéro vérifié</p>
-                    <p className="text-xs text-green-600">{form.phone}</p>
-                  </div>
+              <div className="space-y-3 lg:space-y-4">
+                {/* Numéro vérifié — readonly, sur une ligne */}
+                <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3.5 py-2 lg:px-4 lg:py-3">
+                  <CheckCircle2 size={15} className="text-green-500 flex-shrink-0" />
+                  <p className="text-xs text-green-700 min-w-0 truncate"><span className="font-medium text-green-800">Numéro vérifié</span> · {form.phone}</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Nom du restaurant *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 lg:mb-1.5">Nom du restaurant *</label>
                   <input autoFocus value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                     placeholder="Ex: Chez Fatou, Le Pélican…"
                     style={{ fontSize: '16px' }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 lg:py-3.5 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Email *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 lg:mb-1.5">Email *</label>
                   <input type="email" value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                     placeholder="vous@email.com"
                     style={{ fontSize: '16px' }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3.5 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 lg:py-3.5 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Mot de passe *</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1 lg:mb-1.5">Mot de passe *</label>
                   <div className="relative">
                     <input type={showPass ? 'text' : 'password'} value={form.password}
                       onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                       placeholder="Min. 8 caractères"
                       style={{ fontSize: '16px' }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3.5 pr-11 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 lg:py-3.5 pr-11 outline-none focus:border-gray-400 transition-colors placeholder-gray-300"
                     />
                     <button type="button" onClick={() => setShowPass(!showPass)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
@@ -466,25 +466,25 @@ function OnboardingContent() {
                 )}
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3 mt-4 lg:mt-6">
                 <button onClick={() => { setStep(2); setOtpSent(false); setOtpCode(''); setError('') }}
-                  className="px-4 py-4 rounded-2xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
+                  className="px-4 py-3.5 lg:py-4 rounded-2xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
                   <ArrowLeft size={18} />
                 </button>
                 <button onClick={handleSubmit} disabled={loading || !form.name || !form.email || !form.password}
-                  className="flex-1 bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="flex-1 bg-gray-900 text-white font-semibold py-3.5 lg:py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                   {loading ? <><Loader2 size={18} className="animate-spin" /> Création en cours…</> : <><span>{isPaid ? 'Continuer vers le paiement' : 'Démarrer mon essai gratuit'}</span><ArrowRight size={18} /></>}
                 </button>
               </div>
 
-              <p className="text-xs text-gray-400 text-center mt-4">
+              <p className="text-xs text-gray-400 text-center mt-3 lg:mt-4">
                 En créant un compte vous acceptez nos{' '}
                 <a href="/cgu" className="underline hover:text-gray-600">conditions d'utilisation</a>
               </p>
             </div>
           )}
 
-          <p className="text-center text-xs text-gray-400 mt-8">
+          <p className="hidden lg:block text-center text-xs text-gray-400 mt-8">
             Déjà un compte ?{' '}
             <Link href="/login" className="text-gray-900 font-medium hover:underline">Se connecter</Link>
           </p>

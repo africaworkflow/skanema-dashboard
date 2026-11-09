@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { BrandLogo } from '@/components/ui/BrandLogo'
 
 export default function LoginPage() {
   const [email,    setEmail]    = useState('')
@@ -38,9 +39,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
 
         <div className="text-center mb-8">
-          <div className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">
-            Skanema
-          </div>
+          <BrandLogo className="mb-3" />
           <p className="text-sm text-gray-400">
             Connectez-vous à votre espace restaurant
           </p>
