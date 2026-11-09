@@ -75,6 +75,7 @@ function OnboardingContent() {
   const [otpCode,      setOtpCode]      = useState('')
   const [otpLoading,   setOtpLoading]   = useState(false)
   const [countdown,    setCountdown]    = useState(0)
+  const [otpChannel,   setOtpChannel]   = useState('whatsapp') // canal réellement utilisé par le serveur
 
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
@@ -83,7 +84,7 @@ function OnboardingContent() {
   const passOk = form.password.length >= 8 && /[A-Z]/.test(form.password) && /[a-z]/.test(form.password) && /[0-9]/.test(form.password)
 
   // ── Envoie OTP ──────────────────────────────────────────────────
-  const handleSendOTP = async () => {
+  const handleSendOTP = async (channel) => {
     if (!form.phone.trim()) { setError('Entrez votre numéro de téléphone.'); return }
     setOtpLoading(true)
     setError('')
@@ -91,13 +92,15 @@ function OnboardingContent() {
       const res  = await fetch(`${API_URL}/api/otp/send`, {
         method : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body   : JSON.stringify({ phone: form.phone.trim() }),
+        body   : JSON.stringify({ phone: form.phone.trim(), ...(channel === 'sms' ? { channel: 'sms' } : {}) }),
       })
       const data = await res.json()
-      if (!data.success) { setError(data.message || 'Erreur envoi SMS.'); return }
+      if (!data.success) { setError(data.message || 'Le code n\'a pas pu être envoyé.'); return }
       setOtpSent(true)
-      // Countdown 60s avant de pouvoir renvoyer
-      setCountdown(60)
+      setOtpCode('')
+      setOtpChannel(data.channel === 'whatsapp' ? 'whatsapp' : 'sms')
+      // Délai avant de pouvoir renvoyer (plus court si WhatsApp : on propose vite le SMS en secours)
+      setCountdown(data.channel === 'whatsapp' ? 20 : 60)
       const t = setInterval(() => {
         setCountdown(c => { if (c <= 1) { clearInterval(t); return 0 } return c - 1 })
       }, 1000)
@@ -314,7 +317,7 @@ function OnboardingContent() {
                       onChange={(full, dial, local) => setForm(f => ({ ...f, phone: full, dialCode: dial }))}
                       style={{ minHeight: '52px' }}
                     />
-                    <p className="text-xs text-gray-400 mt-1">Un code SMS vous sera envoyé pour vérifier ce numéro.</p>
+                    <p className="text-xs text-gray-400 mt-1">Vous recevrez un code de vérification sur WhatsApp (ou par SMS).</p>
                   </div>
 
                   {error && (
@@ -329,16 +332,16 @@ function OnboardingContent() {
                       className="px-4 py-4 rounded-2xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors">
                       <ArrowLeft size={18} />
                     </button>
-                    <button onClick={handleSendOTP} disabled={otpLoading || !form.phone}
+                    <button onClick={() => handleSendOTP()} disabled={otpLoading || !form.phone}
                       className="flex-1 bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                      {otpLoading ? <><Loader2 size={18} className="animate-spin" /> Envoi…</> : <>Envoyer le code SMS <ArrowRight size={18} /></>}
+                      {otpLoading ? <><Loader2 size={18} className="animate-spin" /> Envoi…</> : <>Recevoir mon code <ArrowRight size={18} /></>}
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs text-gray-500">Code envoyé au</p>
+                    <p className="text-xs text-gray-500">{otpChannel === 'whatsapp' ? 'Code envoyé sur WhatsApp au' : 'Code envoyé par SMS au'}</p>
                     <p className="text-sm font-semibold text-gray-900 mt-0.5">{form.phone}</p>
                     <button onClick={() => { setOtpSent(false); setOtpCode(''); setError('') }}
                       className="text-xs text-gray-400 hover:text-gray-600 underline mt-1">
@@ -363,11 +366,16 @@ function OnboardingContent() {
 
                   <div className="text-center">
                     {countdown > 0 ? (
-                      <p className="text-xs text-gray-400">Renvoyer dans {countdown}s</p>
-                    ) : (
-                      <button onClick={handleSendOTP} disabled={otpLoading}
+                      <p className="text-xs text-gray-400">{otpChannel === 'whatsapp' ? `Pas reçu ? Option SMS dans ${countdown} s` : `Renvoyer dans ${countdown} s`}</p>
+                    ) : otpChannel === 'whatsapp' ? (
+                      <button onClick={() => handleSendOTP('sms')} disabled={otpLoading}
                         className="text-xs text-gray-600 hover:text-gray-900 underline">
-                        Renvoyer le code
+                        Pas reçu sur WhatsApp ? Recevoir le code par SMS
+                      </button>
+                    ) : (
+                      <button onClick={() => handleSendOTP('sms')} disabled={otpLoading}
+                        className="text-xs text-gray-600 hover:text-gray-900 underline">
+                        Renvoyer le code par SMS
                       </button>
                     )}
                   </div>
