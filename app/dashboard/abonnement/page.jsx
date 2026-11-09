@@ -239,11 +239,11 @@ function Abonnement() {
                         <td className="px-5 py-3 text-sm text-gray-700">{day(p.paidAt)}</td>
                         <td className="px-5 py-3 text-sm text-gray-700">{PLAN_NAME[p.plan]}</td>
                         <td className="px-5 py-3 text-xs text-gray-500">{day(p.periodStart)} → {day(p.periodEnd)}</td>
-                        <td className="px-5 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{fcfa(p.amount)}</td>
+                        <td className="px-5 py-3 text-sm font-medium text-gray-900 whitespace-nowrap">{p.gift ? 'Offert' : fcfa(p.amount)}</td>
                         <td className="px-5 py-3 text-xs">
                           {p.receiptUrl
                             ? <a href={p.receiptUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 underline">Voir <ExternalLink size={11} /></a>
-                            : <span className="text-gray-300">{p.provider === 'manual' ? 'Réglé hors ligne' : '—'}</span>}
+                            : <span className="text-gray-300">{p.gift ? 'Offert par Skanema' : p.provider === 'manual' ? 'Réglé hors ligne' : '—'}</span>}
                         </td>
                       </tr>
                     ))}
