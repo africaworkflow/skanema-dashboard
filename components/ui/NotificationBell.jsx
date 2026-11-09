@@ -1,18 +1,10 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Bell, ShoppingBag, X, CheckCheck } from 'lucide-react'
-import { getOrders } from '@/lib/api'
 import { formatFCFA } from '@/lib/utils'
 
-const POLL_INTERVAL = 30000 // 30 secondes
-
-function playNotificationSound() {
-  try {
-    const audio = new Audio('/notification.mp3')
-    audio.volume = 0.7
-    audio.play().catch(() => {}) // ignore si bloqué par le navigateur
-  } catch (_) {}
-}
+// La liste des commandes est interrogée une seule fois pour tout le dashboard, par NewOrderAlert
+// (toutes les 10 s), qui joue aussi le son. La cloche reçoit la liste par l'événement « skanema:orders ».
 const STORAGE_KEY   = 'skanema_last_seen_order'
 
 function timeAgo(date) {
@@ -55,31 +47,23 @@ export function NotificationBell() {
     : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 )
 
-  const poll = useCallback(async () => {
-    try {
-      const res    = await getOrders({ limit: 10, page: 1 })
-      const orders = res.data.data || []
-
-      // Nouvelles commandes depuis la dernière consultation
-      const unseen = orders.filter(o =>
-        new Date(o.createdAt) > new Date(lastSeenRef.current) &&
-        o.status !== 'CANCELLED'
-      )
-      // Joue le son si nouvelles commandes
-      if (unseen.length > newOrders.length) {
-        playNotificationSound()
-      }
-      setNewOrders(unseen)
-      setRecentOrders(orders)
-    } catch (_) {}
+  const update = useCallback((orders) => {
+    // Nouvelles commandes depuis la dernière consultation
+    const unseen = orders.filter(o =>
+      new Date(o.createdAt) > new Date(lastSeenRef.current) &&
+      o.status !== 'CANCELLED'
+    )
+    setNewOrders(unseen)
+    setRecentOrders(orders)
   }, [])
 
-  // Polling toutes les 30 secondes
+  // Reçoit la liste des commandes à chaque interrogation
   useEffect(() => {
-    poll()
-    const interval = setInterval(poll, POLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [poll])
+    if (typeof window !== 'undefined' && window.__skanemaOrders) update(window.__skanemaOrders)
+    const onOrders = (e) => update(e.detail || [])
+    window.addEventListener('skanema:orders', onOrders)
+    return () => window.removeEventListener('skanema:orders', onOrders)
+  }, [update])
 
   // Ferme le dropdown en cliquant dehors
   useEffect(() => {

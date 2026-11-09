@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { getOrders, updateOrder } from '@/lib/api'
+import { OPEN_ORDER_EVENT } from '@/components/ui/NewOrderAlert'
 import { formatFCFA, formatDate, STATUS_LABELS } from '@/lib/utils'
 import {
   ShoppingBag, Search, Filter, ChevronDown,
@@ -57,6 +58,23 @@ export default function CommandesPage() {
   }, [page, status])
 
   useEffect(() => { load() }, [load])
+
+  // Ouvre la commande choisie depuis l'alerte « Nouvelle commande »
+  const openFromAlert = useCallback((id) => {
+    if (!id) return
+    setSearch(''); setStatus(''); setPage(1); setExpanded(id)
+    load()
+  }, [load])
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('commande')
+    if (id) {
+      setExpanded(id)
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+    const onOpen = (e) => openFromAlert(e.detail)
+    window.addEventListener(OPEN_ORDER_EVENT, onOpen)
+    return () => window.removeEventListener(OPEN_ORDER_EVENT, onOpen)
+  }, [openFromAlert])
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     setUpdating(orderId)

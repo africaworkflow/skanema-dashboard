@@ -2,6 +2,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/useAuth'
+import { NewOrderAlert } from '@/components/ui/NewOrderAlert'
 
 export default function DashboardLayout({ children }) {
   const { user, loading } = useAuth()
@@ -30,5 +31,6 @@ export default function DashboardLayout({ children }) {
     </div>
   )
 
-  return <>{children}</>
+  // L'alerte « Nouvelle commande » reste montée d'une page du dashboard à l'autre
+  return <>{children}<NewOrderAlert /></>
 }
