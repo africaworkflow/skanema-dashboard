@@ -53,16 +53,16 @@ export default function CGV() {
         </Section>
 
         <Section number="02" title="Offres et tarifs">
-          <p style={{ fontSize:'15px', color:'#333', lineHeight:1.75, margin:'0 0 16px' }}>Skanema propose les abonnements mensuels suivants, payables en FCFA via Wave :</p>
+          <p style={{ fontSize:'15px', color:'#333', lineHeight:1.75, margin:'0 0 16px' }}>Skanema propose une offre d'essai gratuite et les abonnements mensuels suivants, payables en FCFA par mobile money :</p>
           <div style={{ display:'grid', gap:'1px', background:'#e5e5e5', border:'0.5px solid #e5e5e5', borderRadius:'12px', overflow:'hidden', marginBottom:'16px' }}>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'10px 20px', background:'#f9f9f9' }}>
-              {['Plan','Prix mensuel','Plats','Zones'].map(h => (
+              {['Offre','Prix','Articles','Zones'].map(h => (
                 <span key={h} style={{ fontSize:'11px', fontWeight:500, color:'#888', textTransform:'uppercase', letterSpacing:'0.06em' }}>{h}</span>
               ))}
             </div>
             {[
-              ['Basic',   '15 000 FCFA', '10 plats',  '1 zone'],
-              ['Pro',     '35 000 FCFA', '25 plats',  '3 zones'],
+              ['Essai gratuit', '0 FCFA (14 jours)', '10 articles', '1 zone'],
+              ['Pro',     '35 000 FCFA', '25 articles', '3 zones'],
               ['Premium', '75 000 FCFA', 'Illimité',  'Illimité'],
             ].map(([plan, prix, plats, zones], i, arr) => (
               <div key={plan} style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', padding:'14px 20px', background:'#fff', borderBottom: i < arr.length-1 ? '0.5px solid #e5e5e5' : 'none' }}>
@@ -77,11 +77,11 @@ export default function CGV() {
         </Section>
 
         <Section number="03" title="Essai gratuit">
-          <P>Tout nouveau compte bénéficie d'une période d'essai gratuite de 14 jours sans engagement. À l'issue de cette période, un abonnement payant est requis pour continuer à utiliser le service.</P>
+          <P>L'offre d'essai est gratuite pendant 14 jours, sans engagement, et limitée à 10 articles et une zone de livraison. À l'issue de cette période, un abonnement Pro ou Premium est requis pour continuer à utiliser le service. Les offres Pro et Premium choisies à l'inscription sont payables immédiatement et ne comprennent pas de période d'essai.</P>
         </Section>
 
         <Section number="04" title="Commande et paiement">
-          <P>Le paiement s'effectue via Wave. L'abonnement est activé dès réception du paiement confirmé et renouvelé automatiquement chaque mois. Un rappel est envoyé 2 jours avant l'échéance.</P>
+          <P>Le paiement s'effectue par mobile money (Wave, Orange Money, MTN, Moov ou autre moyen proposé selon le pays) par l'intermédiaire de notre prestataire de paiement PayDunya. Chaque paiement couvre 30 jours et l'abonnement est activé dès réception du paiement confirmé. Le renouvellement se fait par un nouveau paiement : des rappels sont envoyés 3 jours et 1 jour avant l'échéance, et le service reste actif 3 jours après celle-ci avant d'être suspendu.</P>
         </Section>
 
         <Section number="05" title="Politique de remboursement">

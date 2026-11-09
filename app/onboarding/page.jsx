@@ -1,20 +1,21 @@
 'use client'
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowRight, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle2, Smartphone } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Loader2, Eye, EyeOff, AlertTriangle, CheckCircle2, Smartphone, Check, QrCode, Wallet, BellRing } from 'lucide-react'
 import Cookies from 'js-cookie'
 import { PhoneInput } from '@/components/ui/PhoneInput'
 import Link from 'next/link'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.skanema.com'
 
+// Essai gratuit (limites réduites) ou offre payante réglée dès l'inscription
 const PLANS = [
-  { id: 'basic',   name: 'Basic',   price: 15000, features: ['10 plats au menu', 'Bot WhatsApp', 'Paiement Wave', '1 zone de livraison'] },
-  { id: 'pro',     name: 'Pro',     price: 35000, popular: true, features: ['25 plats au menu', 'Bot WhatsApp', 'Statistiques avancées', '3 zones de livraison'] },
-  { id: 'premium', name: 'Premium', price: 75000, features: ['Plats illimités', 'Bot WhatsApp', 'Support prioritaire', 'Zones illimitées'] },
+  { id: 'essai',   name: 'Essai gratuit', price: 0,     period: '14 jours', features: ['10 articles au catalogue', '1 zone de livraison', 'Bot WhatsApp et paiement mobile'] },
+  { id: 'pro',     name: 'Pro',           price: 35000, period: '/mois', popular: true, features: ['25 articles au catalogue', '3 zones de livraison', 'Statistiques avancées', 'Reçus par e-mail'] },
+  { id: 'premium', name: 'Premium',       price: 75000, period: '/mois', features: ['Articles illimités', 'Zones illimitées', 'Statistiques avancées', 'Support prioritaire'] },
 ]
 
-function fmt(n) { return new Intl.NumberFormat('fr-FR').format(n) + ' FCFA' }
+function fmt(n) { return new Intl.NumberFormat('fr-FR').format(n).replace(/\u202f|\u00a0/g, ' ') + ' FCFA' }
 
 function PasswordStrength({ password }) {
   if (!password) return null
@@ -44,7 +45,7 @@ function PasswordStrength({ password }) {
 function OnboardingContent() {
   const router       = useRouter()
   const searchParams = useSearchParams()
-  const initPlan     = searchParams.get('plan') || 'pro'
+  const initPlan     = ['pro', 'premium'].includes(searchParams.get('plan')) ? searchParams.get('plan') : 'essai'
 
   const [step,         setStep]         = useState(1)
   const [loading,      setLoading]      = useState(false)
@@ -58,7 +59,8 @@ function OnboardingContent() {
   const [otpLoading,   setOtpLoading]   = useState(false)
   const [countdown,    setCountdown]    = useState(0)
 
-  const plan  = PLANS.find(p => p.id === selectedPlan) || PLANS[1]
+  const plan  = PLANS.find(p => p.id === selectedPlan) || PLANS[0]
+  const isPaid = plan.price > 0
   const passOk = form.password.length >= 8 && /[A-Z]/.test(form.password) && /[a-z]/.test(form.password) && /[0-9]/.test(form.password)
 
   // ── Envoie OTP ──────────────────────────────────────────────────
@@ -144,7 +146,8 @@ function OnboardingContent() {
       })
       Cookies.set('skanema_token', data.token,                opts)
       Cookies.set('skanema_user',  JSON.stringify(data.data), opts)
-      window.location.href = '/dashboard'
+      // Pro/Premium : la fenêtre de paiement s'ouvre directement sur la page Abonnement
+      window.location.href = isPaid ? `/dashboard/abonnement?payer=${plan.id}` : '/dashboard'
     } catch (_) {
       setError('Erreur réseau. Vérifiez votre connexion.')
     } finally {
@@ -153,9 +156,10 @@ function OnboardingContent() {
   }
 
   const STEPS = [
-    { n: 1, label: 'Votre plan'    },
+    { n: 1, label: 'Votre offre'   },
     { n: 2, label: 'Vérification'  },
     { n: 3, label: 'Votre compte'  },
+    ...(isPaid ? [{ n: 4, label: 'Paiement' }] : []),
   ]
 
   return (
@@ -177,27 +181,24 @@ function OnboardingContent() {
           <span className="text-white" style={{ fontFamily: 'Montserrat, Inter, sans-serif', fontWeight: 900, fontSize: 22, letterSpacing: '-.02em', textTransform: 'uppercase', lineHeight: .98 }}>Skanema</span>
         </a>
         <div className="relative">
-          <div className="text-white/20 text-6xl font-serif leading-none mb-4">"</div>
-          <p className="text-white text-lg font-medium leading-relaxed mb-6">
-            Depuis Skanema, mes commandes WhatsApp ont augmenté de 40%.
-            Le bot gère tout, je me concentre sur la cuisine.
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-200 flex items-center justify-center text-orange-800 font-bold text-sm">FD</div>
-            <div>
-              <p className="text-white text-sm font-medium">Fatou Diallo</p>
-              <p className="text-white/50 text-xs">Chez Fatou — Dakar</p>
-            </div>
-          </div>
+          <h2 className="text-white text-3xl font-bold leading-tight mb-8">Vos clients commandent<br />et paient sur WhatsApp.</h2>
+          <ul className="space-y-5">
+            {[
+              { icon: QrCode,   title: 'Catalogue et QR code',    text: 'Vos clients scannent, choisissent et envoient leur panier en un message.' },
+              { icon: Wallet,   title: 'Paiement mobile money',   text: 'Wave, Orange Money, ou paiement à la livraison si vous le souhaitez.' },
+              { icon: BellRing, title: 'Commande sur votre téléphone', text: 'Avec le détail du panier et la position du client pour la livraison.' },
+            ].map(({ icon: Icon, title, text }) => (
+              <li key={title} className="flex gap-3.5">
+                <span className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0"><Icon size={17} className="text-white" /></span>
+                <div>
+                  <p className="text-white text-sm font-semibold">{title}</p>
+                  <p className="text-white/50 text-sm leading-relaxed mt-0.5">{text}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="grid grid-cols-3 gap-4 relative">
-          {[{ value: '50+', label: 'Restaurants' }, { value: '2 400+', label: 'Commandes' }, { value: '99.9%', label: 'Disponibilité' }].map((s, i) => (
-            <div key={i} className="bg-white/5 rounded-xl p-3 text-center">
-              <p className="text-white font-bold text-lg">{s.value}</p>
-              <p className="text-white/50 text-xs mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        <p className="relative text-white/40 text-xs">Sans engagement · Aucune commission sur vos ventes</p>
       </div>
 
       {/* ── Panneau droit ── */}
@@ -214,8 +215,8 @@ function OnboardingContent() {
                 }`}>
                   {s.n < step ? <CheckCircle2 size={13} /> : s.n}
                 </div>
-                <span className={`text-xs leading-tight ${s.n === step ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>{s.label}</span>
-                {i < 2 && <div className="w-4 h-px bg-gray-200 mx-1 flex-shrink-0" />}
+                <span className={`text-xs leading-tight ${s.n === step ? 'text-gray-900 font-medium' : 'text-gray-400 hidden sm:inline'}`}>{s.label}</span>
+                {i < STEPS.length - 1 && <div className="w-4 h-px bg-gray-200 mx-1 flex-shrink-0" />}
               </div>
             ))}
           </div>
@@ -224,21 +225,24 @@ function OnboardingContent() {
           {step === 1 && (
             <div style={{ animation: 'fadeUp 0.3s ease both' }}>
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">Choisissez votre plan</h1>
-              <p className="text-sm text-gray-400 mb-6">Vous ne paierez rien pour l'instant.</p>
-              <div className="space-y-3 mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-1">Choisissez votre offre</h1>
+              <p className="text-sm text-gray-400 mb-6">Commencez gratuitement, ou démarrez directement avec tout le potentiel de Skanema.</p>
+              <div className="space-y-3 mb-4" role="radiogroup" aria-label="Offre">
                 {PLANS.map(p => {
                   const active = selectedPlan === p.id
                   return (
-                    <button key={p.id} onClick={() => setSelectedPlan(p.id)}
+                    <button key={p.id} role="radio" aria-checked={active} onClick={() => setSelectedPlan(p.id)}
                       className={`w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 ${active ? 'border-gray-900 bg-white' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-start justify-between gap-3 mb-2.5">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm font-bold text-gray-900">{p.name}</p>
                           {p.popular && <span className="text-xs bg-gray-900 text-white px-2 py-0.5 rounded-full font-medium">Populaire</span>}
                         </div>
-                        <div className="flex items-center gap-2.5">
-                          <span className="font-bold text-gray-900">{fmt(p.price)}<span className="text-xs font-normal text-gray-400 ml-1">/mois</span></span>
+                        <div className="flex items-center gap-2.5 flex-shrink-0">
+                          <span className="font-bold text-gray-900 whitespace-nowrap">
+                            {p.price === 0 ? '0 FCFA' : fmt(p.price)}
+                            <span className="text-xs font-normal text-gray-400 ml-1">{p.period}</span>
+                          </span>
                           <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${active ? 'border-gray-900 bg-gray-900' : 'border-gray-300'}`}>
                             {active && <div className="w-2 h-2 rounded-full bg-white" />}
                           </div>
@@ -246,8 +250,8 @@ function OnboardingContent() {
                       </div>
                       <div className="flex flex-wrap gap-x-3 gap-y-1">
                         {p.features.map((f, i) => (
-                          <span key={i} className="text-xs text-gray-400 flex items-center gap-1">
-                            <CheckCircle2 size={10} className="text-gray-300" /> {f}
+                          <span key={i} className={`text-xs flex items-center gap-1 ${active ? 'text-gray-600' : 'text-gray-400'}`}>
+                            <Check size={11} className={active ? 'text-green-600' : 'text-gray-300'} /> {f}
                           </span>
                         ))}
                       </div>
@@ -255,6 +259,11 @@ function OnboardingContent() {
                   )
                 })}
               </div>
+              <p className="text-xs text-gray-500 bg-gray-50 rounded-xl px-4 py-3 mb-6 leading-relaxed" aria-live="polite">
+                {isPaid
+                  ? <>Vous réglerez <b className="text-gray-900">{fmt(plan.price)}</b> par mobile money à la fin de l'inscription (Wave, Orange Money, MTN…). Sans engagement.</>
+                  : <>Aucun paiement pendant 14 jours. Vous passerez à Pro ou Premium quand vous le souhaitez.</>}
+              </p>
               <button onClick={() => setStep(2)}
                 className="w-full bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all">
                 Continuer <ArrowRight size={18} />
@@ -365,7 +374,9 @@ function OnboardingContent() {
               <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}`}</style>
               <h1 className="text-2xl font-bold text-gray-900 mb-1">Créez votre compte</h1>
               <p className="text-sm text-gray-400 mb-6">
-                Plan <span className="font-semibold text-gray-700">{plan.name}</span> · {fmt(plan.price)}/mois
+                {isPaid
+                  ? <>Plan <span className="font-semibold text-gray-700">{plan.name}</span> · {fmt(plan.price)}/mois, payé à l'étape suivante</>
+                  : <><span className="font-semibold text-gray-700">Essai gratuit</span> · 14 jours, sans paiement</>}
                 <button onClick={() => { setStep(1); setError('') }} className="text-gray-400 hover:text-gray-600 underline ml-2 text-xs">Changer</button>
               </p>
 
@@ -434,7 +445,7 @@ function OnboardingContent() {
                 </button>
                 <button onClick={handleSubmit} disabled={loading || !form.name || !form.email || !form.password}
                   className="flex-1 bg-gray-900 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-                  {loading ? <><Loader2 size={18} className="animate-spin" /> Création en cours…</> : <><span>Accéder au dashboard</span><ArrowRight size={18} /></>}
+                  {loading ? <><Loader2 size={18} className="animate-spin" /> Création en cours…</> : <><span>{isPaid ? 'Continuer vers le paiement' : 'Démarrer mon essai gratuit'}</span><ArrowRight size={18} /></>}
                 </button>
               </div>
 

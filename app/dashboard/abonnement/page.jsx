@@ -4,12 +4,13 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { CheckCircle2, AlertTriangle, Loader2, ShieldCheck, Clock, XCircle, ExternalLink, MessageCircle } from 'lucide-react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/hooks/useAuth'
-import { getBilling, createCheckout, getPaymentStatus } from '@/lib/api'
+import { getBilling, getPaymentStatus, startTrial } from '@/lib/api'
+import { PayModal } from '@/components/billing/PayModal'
 
 const SUPPORT_WA = '221784632103'
 const fcfa = (n) => `${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} FCFA`
 const day  = (d) => (d ? new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—')
-const PLAN_NAME = { basic: 'Basic', pro: 'Pro', premium: 'Premium' }
+const PLAN_NAME = { basic: 'Essai', pro: 'Pro', premium: 'Premium' }
 
 export default function AbonnementPage() {
   return (
@@ -26,8 +27,9 @@ function Spinner() {
 function StatusCard({ sub }) {
   const plan = PLAN_NAME[sub.plan] || 'Basic'
   const cfg = {
-    trial        : { tone: 'blue',  icon: Clock,         title: 'Essai gratuit en cours', text: `Votre essai se termine le ${day(sub.trialEnds)}. Payez dès maintenant : vos 30 jours commenceront après la fin de l'essai, vous ne perdez rien.` },
-    trial_expired: { tone: 'amber', icon: AlertTriangle, title: 'Votre essai est terminé', text: 'Votre bot WhatsApp ne prend plus de commandes. Choisissez un plan ci-dessous pour le réactiver immédiatement.' },
+    trial        : { tone: 'blue',  icon: Clock,         title: 'Essai gratuit en cours', text: `Votre essai (10 articles, 1 zone de livraison) se termine le ${day(sub.trialEnds)}. Passez à Pro ou Premium quand vous voulez : vos nouvelles limites s'appliquent dès le paiement.` },
+    trial_expired: { tone: 'amber', icon: AlertTriangle, title: 'Votre essai est terminé', text: 'Votre bot WhatsApp ne prend plus de commandes. Choisissez Pro ou Premium ci-dessous pour le réactiver immédiatement.' },
+    pending      : { tone: 'amber', icon: Clock,         title: `Finalisez votre abonnement ${PLAN_NAME[sub.intendedPlan] || 'Pro'}`, text: 'Votre compte est créé. Votre bot WhatsApp s\'active dès que le paiement est confirmé.' },
     active       : { tone: 'green', icon: CheckCircle2,  title: `Abonnement ${plan} actif`, text: `Votre bot fonctionne jusqu'au ${day(sub.renewsAt)}. Vous pouvez renouveler à l'avance : les 30 jours s'ajoutent à la date en cours.` },
     overdue      : { tone: 'amber', icon: AlertTriangle, title: 'Abonnement à renouveler', text: `Votre abonnement est arrivé à échéance le ${day(sub.renewsAt)}. Renouvelez avant le ${day(sub.graceEnds)} pour éviter que votre bot soit coupé.` },
     suspended    : { tone: 'red',   icon: XCircle,       title: 'Bot suspendu', text: sub.suspendedReason === 'unpaid' ? 'Votre abonnement n\'a pas été renouvelé : votre bot ne prend plus de commandes. Il repart dès le paiement confirmé.' : 'Votre compte est suspendu. Contactez-nous pour en savoir plus.' },
@@ -58,9 +60,11 @@ function Abonnement() {
   const { refresh } = useAuth()
   const [data,    setData]    = useState(null)
   const [error,   setError]   = useState('')
-  const [paying,  setPaying]  = useState('')     // plan en cours de redirection
+  const [paying,  setPaying]  = useState(null)   // plan en cours de paiement (fenêtre ouverte)
   const [check,   setCheck]   = useState(null)   // { status, until } après retour de PayDunya
   const polled = useRef(false)
+  const autoOpened = useRef(false)
+  const [trialBusy, setTrialBusy] = useState(false)
 
   const load = useCallback(async () => {
     try { const r = await getBilling(); setData(r.data); setError('') }
@@ -94,16 +98,25 @@ function Abonnement() {
     router.replace('/dashboard/abonnement', { scroll: false })
   }, [params, load, refresh, router])
 
-  const pay = async (plan) => {
-    setPaying(plan); setError('')
-    try {
-      const r = await createCheckout(plan)
-      window.location.href = r.data.url // page de paiement sécurisée PayDunya
-    } catch (e) {
-      setError(e.response?.data?.message || 'Le paiement n\'a pas pu démarrer. Réessayez.')
-      setPaying('')
-    }
+  const pay = (planId) => { setError(''); setPaying(data.plans.find((p) => p.id === planId)) }
+
+  // Inscription sur Pro/Premium : la fenêtre de paiement s'ouvre directement
+  useEffect(() => {
+    if (!data || autoOpened.current || params.get('paiement')) return
+    const wanted = params.get('payer') // seulement en arrivant de l'inscription, pas à chaque visite
+    const plan = data.plans.find((p) => p.id === wanted)
+    autoOpened.current = true
+    if (plan && data.onlinePayment) setPaying(plan)
+    if (params.get('payer')) router.replace('/dashboard/abonnement', { scroll: false })
+  }, [data, params, router])
+
+  const chooseTrial = async () => {
+    setTrialBusy(true); setError('')
+    try { await startTrial(); await Promise.all([load(), refresh().catch(() => {})]) }
+    catch (e) { setError(e.response?.data?.message || 'Impossible de démarrer l\'essai.') }
+    finally { setTrialBusy(false) }
   }
+  const onPaid = useCallback(() => { load(); refresh().catch(() => {}) }, [load, refresh])
 
   const cancelled = params.get('annule') === '1'
 
@@ -121,6 +134,10 @@ function Abonnement() {
         </div>
       )}
 
+      {paying && data && (
+        <PayModal plan={paying} countries={data.paymentMethods || []} payer={data.payer} onPaid={onPaid} onClose={() => setPaying(null)} />
+      )}
+
       {data && (
         <>
           <StatusCard sub={data.subscription} />
@@ -129,7 +146,7 @@ function Abonnement() {
             <h2 className="text-sm font-semibold text-gray-900 mb-3">
               {data.subscription.state === 'active' ? 'Renouveler ou changer de plan' : 'Choisissez votre plan'}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">
               {data.plans.map((plan) => {
                 const current = plan.id === data.subscription.plan && ['active', 'overdue'].includes(data.subscription.state)
                 const featured = plan.id === 'pro'
@@ -152,7 +169,6 @@ function Abonnement() {
                       disabled={!data.onlinePayment || Boolean(paying)}
                       className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${featured ? 'bg-gray-900 text-white hover:bg-gray-800' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
                     >
-                      {paying === plan.id && <Loader2 size={14} className="animate-spin" />}
                       {current ? 'Renouveler' : 'Payer'} {fcfa(plan.price)}
                     </button>
                   </div>
@@ -160,9 +176,18 @@ function Abonnement() {
               })}
             </div>
 
+            {data.subscription.state === 'pending' && (
+              <p className="text-xs text-gray-500 mt-4 max-w-2xl text-center">
+                Vous préférez d'abord essayer ?{' '}
+                <button onClick={chooseTrial} disabled={trialBusy} className="font-medium text-gray-900 underline disabled:opacity-50">
+                  Commencer par l'essai gratuit de 14 jours
+                </button>{' '}(10 articles, 1 zone de livraison).
+              </p>
+            )}
+
             {data.onlinePayment ? (
-              <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-4 text-center">
-                <ShieldCheck size={13} /> Paiement sécurisé par PayDunya · Wave, Orange Money, carte bancaire… · Sans engagement
+              <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 mt-4 text-center max-w-2xl">
+                <ShieldCheck size={13} /> Mobile money · {(data.paymentMethods || []).map((c) => c.name).join(', ')} · Sans engagement
               </p>
             ) : (
               <div className="mt-4 text-center text-xs text-gray-500">

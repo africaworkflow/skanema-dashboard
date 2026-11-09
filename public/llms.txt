@@ -25,11 +25,11 @@ Restaurants, pharmacies, boutiques et tout commerce qui reçoit des commandes au
 
 ## Tarifs
 
-- Basic : 15 000 FCFA/mois — 10 articles au catalogue, 1 zone de livraison
+- Essai gratuit : 0 FCFA pendant 14 jours — 10 articles au catalogue, 1 zone de livraison
 - Pro : 35 000 FCFA/mois — 25 articles, 3 zones de livraison, statistiques avancées
 - Premium : 75 000 FCFA/mois — articles et zones illimités, support prioritaire
 
-Essai gratuit de 14 jours. Aucune commission sur les ventes : abonnement mensuel fixe.
+Aucune commission sur les ventes : abonnement mensuel fixe, payable par mobile money (Wave, Orange Money, MTN, Moov…), sans engagement.
 
 ## Liens importants
 

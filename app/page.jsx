@@ -17,9 +17,9 @@ const jsonLd = {
   offers       : {
     '@type'   : 'AggregateOffer',
     priceCurrency: 'XOF',
-    lowPrice  : '15000',
+    lowPrice  : '35000',
     highPrice : '75000',
-    offerCount: '3',
+    offerCount: '2',
   },
   creator: {
     '@type': 'Organization',

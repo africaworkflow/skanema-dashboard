@@ -8,7 +8,8 @@ import { ImageUpload } from '@/components/ui/ImageUpload'
 import { QRCodeSection } from '@/components/ui/QRCodeSection'
 
 const PLAN_LIMITS = { basic: 10, pro: 25, premium: 999 }
-const PLAN_PRICE  = { basic: 15000, pro: 35000, premium: 75000 }
+const PLAN_PRICE  = { basic: 0, pro: 35000, premium: 75000 }
+const PLAN_NAME   = { basic: 'Essai', pro: 'Pro', premium: 'Premium' }
 
 export default function ParametresPage() {
   const { user }              = useAuth()
@@ -271,7 +272,7 @@ export default function ParametresPage() {
         <div className="bg-gray-50 border border-gray-100 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-medium text-gray-900 capitalize">Plan {plan}</p>
+              <p className="text-sm font-medium text-gray-900">{plan === 'basic' ? 'Offre d\'essai' : `Plan ${PLAN_NAME[plan]}`}</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {user?.subscription?.status === 'trial'
                   ? `Essai gratuit · ${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`
@@ -279,8 +280,8 @@ export default function ParametresPage() {
                 }
               </p>
             </div>
-            <span className="text-xs font-medium bg-gray-900 text-white px-3 py-1 rounded-full capitalize">
-              {plan}
+            <span className="text-xs font-medium bg-gray-900 text-white px-3 py-1 rounded-full">
+              {PLAN_NAME[plan] || plan}
             </span>
           </div>
 
@@ -308,13 +309,8 @@ export default function ParametresPage() {
               )}
             </p>
           ) : (
-            <a
-              href="https://wa.me/221784632103?text=Bonjour%20Skanema%2C%20je%20souhaite%20passer%20%C3%A0%20un%20plan%20payant."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary text-xs py-2 inline-block"
-            >
-              Passer à un plan payant
+            <a href="/dashboard/abonnement" className="btn-primary text-xs py-2 inline-block">
+              Passer à Pro ou Premium
             </a>
           )}
         </div>

@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }) {
     const sub = user?.subscription
     if (!sub) return
     const isTrialExpired = sub.status === 'trial' && new Date() > new Date(sub.trialEnds)
-    const isSuspended    = sub.status === 'suspended' || sub.status === 'cancelled'
+    const isSuspended    = sub.status === 'suspended' || sub.status === 'cancelled' || sub.status === 'pending'
 
     // La page abonnement reste accessible pour pouvoir payer
     if ((isTrialExpired || isSuspended) && pathname !== '/dashboard/abonnement') {

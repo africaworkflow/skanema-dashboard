@@ -125,7 +125,7 @@ export function Sidebar({ open, onClose }) {
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs text-gray-500">Plan actuel</span>
               <span className="text-2xs font-medium bg-gray-900 text-white px-2 py-0.5 rounded-full capitalize">
-                {user?.plan || 'basic'}
+                {!user?.plan || user.plan === 'basic' ? 'Essai' : user.plan}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
