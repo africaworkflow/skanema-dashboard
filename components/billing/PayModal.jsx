@@ -228,16 +228,16 @@ export function PayModal({ plan, countries, payer, onClose, onPaid }) {
                 <label htmlFor="pay-name" className="block text-xs font-medium text-gray-500 mb-1.5">Nom du titulaire du compte</label>
                 <input id="pay-name" required minLength={2} maxLength={80} autoComplete="name" value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex. Awa Diop"
-                  className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                  className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
               </div>
 
               <div>
                 <label htmlFor="pay-phone" className="block text-xs font-medium text-gray-500 mb-1.5">Numéro {tiles.find((t) => t.id === method)?.label}</label>
                 <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-gray-900/10">
-                  <span className="flex items-center px-3 bg-gray-50 text-sm text-gray-500 border-r border-gray-200">+{c.dial}</span>
+                  <span className="flex items-center px-3 bg-gray-50 text-base sm:text-sm text-gray-500 border-r border-gray-200">+{c.dial}</span>
                   <input id="pay-phone" required inputMode="tel" autoComplete="tel-national" value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder={c.example}
-                    className="flex-1 min-w-0 px-3 py-2.5 text-sm focus:outline-none" />
+                    className="flex-1 min-w-0 px-3 py-2.5 text-base sm:text-sm focus:outline-none" />
                 </div>
               </div>
 
@@ -249,7 +249,7 @@ export function PayModal({ plan, countries, payer, onClose, onPaid }) {
                   <label htmlFor="pay-code" className="block text-xs font-medium text-gray-500 mb-1.5">Code de paiement</label>
                   <input id="pay-code" required inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={form.code}
                     onChange={(e) => setForm({ ...form, code: e.target.value.replace(/\D/g, '') })} placeholder="••••••"
-                    className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
+                    className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base sm:text-sm tracking-[0.3em] focus:outline-none focus:ring-2 focus:ring-gray-900/10" />
                 </div>
               )}
 
