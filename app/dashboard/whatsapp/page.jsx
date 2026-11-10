@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { NextStepBanner } from '@/components/ui/NextStepBanner'
 import { useAuth } from '@/hooks/useAuth'
 import { Loader2, CheckCircle2, Wifi, WifiOff, RefreshCw, ChevronDown, Save, Webhook } from 'lucide-react'
 import api from '@/lib/api'
@@ -119,6 +120,7 @@ export default function WhatsAppPage() {
   return (
     <DashboardLayout title="WhatsApp" subtitle="Connexion de votre bot WhatsApp">
       <div className="max-w-2xl space-y-5">
+        <NextStepBanner current="whatsapp" done={Boolean(isActive)} />
 
         {/* Statut */}
         <div className="bg-white border border-gray-100 rounded-xl p-5">
@@ -143,11 +145,13 @@ export default function WhatsAppPage() {
             <p className="text-xs text-gray-500 leading-relaxed mb-5">
               Connectez votre numéro WhatsApp Business en quelques clics. Vous aurez besoin d'un compte Facebook et d'un numéro dédié.
             </p>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
-              <p className="text-xs text-blue-700 font-medium mb-1">Avant de commencer</p>
-              <p className="text-xs text-blue-600 leading-relaxed">
-                Le numéro connecté ne doit pas être utilisé sur WhatsApp personnel ou Business app.
-              </p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+              <p className="text-sm font-semibold text-amber-900 mb-2">Avant de commencer, préparez :</p>
+              <ul className="space-y-1.5 text-xs text-amber-900 leading-relaxed">
+                <li className="flex gap-2"><span aria-hidden="true">☐</span><span>Le téléphone où se trouve la puce de ce numéro : vous allez recevoir un code par SMS.</span></li>
+                <li className="flex gap-2"><span aria-hidden="true">☐</span><span>Votre compte Facebook (le vôtre ou celui du restaurant).</span></li>
+                <li className="flex gap-2"><span aria-hidden="true">☐</span><span>Un numéro sans WhatsApp. S'il a déjà WhatsApp, supprimez d'abord l'appli WhatsApp de ce téléphone.</span></li>
+              </ul>
             </div>
             {error && <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-4"><p className="text-xs text-red-600">{error}</p></div>}
             {success ? (

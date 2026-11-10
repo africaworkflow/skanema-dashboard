@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ImageUpload } from '@/components/ui/ImageUpload'
 import { PlanGate } from '@/components/ui/PlanGate'
+import { NextStepBanner } from '@/components/ui/NextStepBanner'
 import { getMenu, createItem, updateItem, deleteItem, toggleItem } from '@/lib/api'
 import { formatFCFA } from '@/lib/utils'
 import {
@@ -209,6 +210,8 @@ export default function MenuPage() {
         </PlanGate>
       }
     >
+      <NextStepBanner current="menu" done={!loading && items.length > 0} />
+
       {/* Barre de progression plan */}
       {maxItems !== 999 && (
         <div className="mb-5 bg-white border border-gray-100 rounded-xl p-4">
@@ -229,11 +232,13 @@ export default function MenuPage() {
       {loading ? (
         <div className="flex justify-center py-16"><Loader2 className="animate-spin text-gray-300" size={22} /></div>
       ) : items.length === 0 ? (
-        <EmptyState icon={UtensilsCrossed} title="Aucun plat" description="Ajoutez votre premier plat pour commencer.">
-          <button onClick={openCreate} className="btn-primary mt-4 flex items-center gap-1.5">
-            <Plus size={14} /> Ajouter un plat
-          </button>
-        </EmptyState>
+        <div className="bg-white border border-gray-100 rounded-2xl">
+          <EmptyState icon={UtensilsCrossed} title="Votre menu est vide" description="Commencez par vos 5 plats les plus vendus : vous compléterez plus tard.">
+            <button onClick={openCreate} className="btn-primary flex items-center gap-2 px-5 py-3 text-sm">
+              <Plus size={16} /> Ajouter mon premier plat
+            </button>
+          </EmptyState>
+        </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([cat, catItems]) => (

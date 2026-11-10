@@ -2,13 +2,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { MapPin, Loader2, Search, X } from 'lucide-react'
 
-export function AddressSearch({ latitude, longitude, onSelect }) {
+// prominentGps : gros bouton « Je suis au restaurant » en premier, coordonnées brutes masquées (parcours de démarrage)
+export function AddressSearch({ latitude, longitude, onSelect, prominentGps = false }) {
   const [query,       setQuery]       = useState('')
   const [results,     setResults]     = useState([])
   const [searching,   setSearching]   = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [coords,      setCoords]      = useState({ lat: latitude || '', lng: longitude || '' })
   const [gpsLoading,  setGpsLoading]  = useState(false)
+  const [gpsError,    setGpsError]    = useState('')
   const debounceRef = useRef(null)
   const wrapperRef  = useRef(null)
 
@@ -57,7 +59,8 @@ export function AddressSearch({ latitude, longitude, onSelect }) {
   }
 
   const handleGPS = () => {
-    if (!navigator.geolocation) return
+    setGpsError('')
+    if (!navigator.geolocation) { setGpsError('Ce téléphone ne permet pas la localisation : recherchez l\'adresse.'); return }
     setGpsLoading(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -68,16 +71,32 @@ export function AddressSearch({ latitude, longitude, onSelect }) {
         onSelect?.({ latitude: lat, longitude: lng })
         setGpsLoading(false)
       },
-      () => setGpsLoading(false),
-      { timeout: 8000 }
+      (err) => {
+        setGpsLoading(false)
+        setGpsError(err?.code === 1
+          ? 'Localisation refusée. Autorisez-la dans votre navigateur, ou recherchez l\'adresse.'
+          : 'Position introuvable pour le moment. Réessayez, ou recherchez l\'adresse.')
+      },
+      { timeout: 10000, enableHighAccuracy: true }
     )
   }
 
   return (
     <div className="space-y-3" ref={wrapperRef}>
+      {prominentGps && (
+        <>
+          <button type="button" onClick={handleGPS} disabled={gpsLoading}
+            className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white rounded-xl py-3 px-4 text-sm font-semibold hover:bg-gray-800 disabled:opacity-60">
+            {gpsLoading ? <Loader2 size={15} className="animate-spin" /> : <MapPin size={15} />}
+            {gpsLoading ? 'Localisation…' : 'Je suis au restaurant : utiliser ma position'}
+          </button>
+          {gpsError && <p className="text-xs text-red-600">{gpsError}</p>}
+          <div className="flex items-center gap-2 text-2xs text-gray-300"><div className="flex-1 h-px bg-gray-100" />ou<div className="flex-1 h-px bg-gray-100" /></div>
+        </>
+      )}
       {/* Recherche adresse */}
       <div className="relative">
-        <label className="block text-xs font-medium text-gray-700 mb-1.5">
+        <label className={prominentGps ? 'sr-only' : 'block text-xs font-medium text-gray-700 mb-1.5'}>
           Adresse du restaurant
         </label>
         <div className="relative">
@@ -85,8 +104,8 @@ export function AddressSearch({ latitude, longitude, onSelect }) {
           <input
             value={query}
             onChange={e => handleInput(e.target.value)}
-            placeholder="Recherchez l'adresse de votre restaurant…"
-            className="input pl-8 pr-8"
+            placeholder={prominentGps ? 'Rechercher l\'adresse…' : 'Recherchez l\'adresse de votre restaurant…'}
+            className="input pl-8 pr-8 text-base sm:text-sm"
           />
           {searching && (
             <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" />
@@ -123,6 +142,7 @@ export function AddressSearch({ latitude, longitude, onSelect }) {
       </div>
 
       {/* Bouton GPS auto */}
+      {!prominentGps && <>
       <button
         type="button"
         onClick={handleGPS}
@@ -135,9 +155,11 @@ export function AddressSearch({ latitude, longitude, onSelect }) {
         }
         {gpsLoading ? 'Localisation…' : 'Utiliser ma position GPS'}
       </button>
+      {gpsError && <p className="text-xs text-red-600">{gpsError}</p>}
+      </>}
 
       {/* Coordonnées affichées */}
-      {(coords.lat || coords.lng) && (
+      {!prominentGps && (coords.lat || coords.lng) && (
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1.5">Latitude</label>

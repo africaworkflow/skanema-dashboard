@@ -47,6 +47,14 @@ const CustomTooltip = ({ active, payload, label }) => {
   )
 }
 
+// Comparaison avec hier à la même heure (calculée par le serveur). Sans commande hier : pas de pourcentage.
+function vsYesterday(stats) {
+  const t = stats?.todayOrders ?? 0, y = stats?.yesterdayOrders
+  if (y === undefined || y === null) return { deltaLabel: 'depuis minuit' }
+  if (y === 0) return { deltaLabel: `hier à cette heure : ${y}` }
+  return { delta: Math.round(((t - y) / y) * 100), deltaLabel: 'vs hier à cette heure' }
+}
+
 export default function DashboardPage() {
   const [stats,   setStats]   = useState(null)
   const [orders,  setOrders]  = useState([])
@@ -109,8 +117,7 @@ export default function DashboardPage() {
             <MetricCard
               label="Commandes aujourd'hui"
               value={stats?.todayOrders ?? 0}
-              delta={12}
-              deltaLabel="vs hier"
+              {...vsYesterday(stats)}
               icon={ShoppingBag}
               accent
             />
