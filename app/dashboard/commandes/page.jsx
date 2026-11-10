@@ -3,12 +3,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Badge } from '@/components/ui/Badge'
 import { EmptyState } from '@/components/ui/EmptyState'
-import { getOrders, updateOrder } from '@/lib/api'
+import { getOrders, updateOrder, getZones } from '@/lib/api'
+import { yangoDeliveryLink } from '@/lib/yango'
+import { YangoQrModal } from '@/components/ui/YangoQrModal'
+import { isDefaultPosition } from '@/hooks/useSetupProgress'
 import { OPEN_ORDER_EVENT } from '@/components/ui/NewOrderAlert'
 import { formatFCFA, formatDate, STATUS_LABELS } from '@/lib/utils'
 import {
   ShoppingBag, Search, Filter, ChevronDown,
-  Loader2, RefreshCw, Phone, MapPin, Clock
+  Loader2, RefreshCw, Phone, MapPin, Clock, Package
 } from 'lucide-react'
 
 const STATUS_OPTIONS = [
@@ -47,6 +50,9 @@ export default function CommandesPage() {
   const [total,     setTotal]     = useState(0)
   const [expanded,  setExpanded]  = useState(null)
   const [updating,  setUpdating]  = useState(null)
+  const [shopPos,   setShopPos]   = useState(null)   // position du restaurant, départ de la course Yango
+  const [copied,    setCopied]    = useState(null)
+  const [yangoQr,   setYangoQr]   = useState(null)   // { link, order } : QR code à scanner, sur ordinateur
   const LIMIT = 15
 
   const load = useCallback(async () => {
@@ -60,6 +66,20 @@ export default function CommandesPage() {
   }, [page, status])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    getZones().then((r) => setShopPos(isDefaultPosition(r.data.location) ? false : r.data.location)).catch(() => setShopPos(false))
+  }, [])
+
+  // Sur ordinateur : QR code à scanner avec le téléphone qui a Yango.
+  // Sur téléphone : copie le numéro du client (à coller comme destinataire), puis ouvre Yango avec la course remplie.
+  const sendWithYango = async (order, link) => {
+    const isComputer = typeof window !== 'undefined' && window.matchMedia?.('(hover: hover) and (pointer: fine)').matches
+    if (isComputer) { setYangoQr({ link, order }); return }
+    try { await navigator.clipboard.writeText(order.customerPhone) } catch (_) {}
+    setCopied(order._id)
+    setTimeout(() => { window.location.href = link }, 600)
+    setTimeout(() => setCopied(null), 6000)
+  }
 
   // Ouvre la commande choisie depuis l'alerte « Nouvelle commande »
   const openFromAlert = useCallback((id) => {
@@ -294,6 +314,30 @@ export default function CommandesPage() {
                             </div>
                           </div>
 
+                          {/* Livraison Yango : course Express Moto remplie (restaurant → point exact du client) */}
+                          {order.location?.latitude && !['DELIVERED', 'CANCELLED', 'PENDING_PAYMENT'].includes(order.status) && (() => {
+                            const link = shopPos ? yangoDeliveryLink(shopPos, order.location) : null
+                            return link ? (
+                              <div className="mt-4">
+                                <button onClick={() => sendWithYango(order, link)}
+                                  className="w-full flex items-center justify-center gap-2 text-xs font-semibold py-2.5 rounded-lg bg-[#FFDD00] text-gray-900 hover:bg-[#F5D300] transition-colors">
+                                  <Package size={14} /> Livrer avec Yango
+                                </button>
+                                <p className="text-2xs text-gray-400 mt-1.5 text-center">
+                                  {yangoQr?.order?._id === order._id
+                                    ? 'Scannez le QR code avec votre téléphone.'
+                                    : copied === order._id
+                                    ? `Numéro du client copié (${order.customerPhone}) : collez-le comme destinataire dans Yango.`
+                                    : 'Ouvre Yango en Express Moto, de votre restaurant jusqu\'au client.'}
+                                </p>
+                              </div>
+                            ) : shopPos === false ? (
+                              <p className="mt-4 text-2xs text-gray-400">
+                                Pour livrer avec Yango, enregistrez d'abord la position du restaurant dans <a href="/dashboard/zones" className="underline">Zones de livraison</a>.
+                              </p>
+                            ) : null
+                          })()}
+
                           {/* Action bouton */}
                           {nextStatus && (
                             <button
@@ -340,6 +384,7 @@ export default function CommandesPage() {
           </div>
         )}
       </div>
+      {yangoQr && <YangoQrModal link={yangoQr.link} order={yangoQr.order} onClose={() => setYangoQr(null)} />}
     </DashboardLayout>
   )
 }
