@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Toggle } from '@/components/ui/Toggle'
 import { AddressSearch, countryFromPhone } from '@/components/ui/AddressSearch'
 import { NextStepBanner } from '@/components/ui/NextStepBanner'
+import { PlanGate } from '@/components/ui/PlanGate'
 import { formatFCFA } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 import { isDefaultPosition } from '@/hooks/useSetupProgress'
@@ -65,7 +66,7 @@ export default function ZonesPage() {
   const saveZones = async (newZones) => {
     setPageErr('')
     try { await updateZones({ zones: newZones }); setZones(newZones); return true }
-    catch (_) { setPageErr('Impossible d\'enregistrer les zones. Vérifiez votre connexion et réessayez.'); return false }
+    catch (e) { setPageErr(e.response?.data?.message || 'Impossible d\'enregistrer les zones. Vérifiez votre connexion et réessayez.'); return false }
   }
 
   const openCreate = () => {
@@ -109,10 +110,19 @@ export default function ZonesPage() {
     </DashboardLayout>
   )
 
-  const maxZones    = { basic: 1, pro: 3 }[user?.plan] ?? 3
+  const plan        = user?.plan || 'basic'
+  const maxZones    = { basic: 1, pro: 3, premium: 99 }[plan] ?? 1
   const suggested   = maxZones >= 3 ? SUGGESTED.three : SUGGESTED.one
   const showSuggest = posSaved && !custom && (zones.length === 0 || isFactoryZones(zones))
   const hasActive   = zones.some((z) => z.active !== false)
+  const activeCount = zones.filter((z) => z.active !== false).length
+  const atLimit     = activeCount >= maxZones
+  // À la limite, « Ajouter une zone » ouvre l'invitation à l'offre supérieure (comme pour les articles)
+  const zoneGate = {
+    currentPlan : plan,
+    requiredPlan: atLimit && plan !== 'premium' ? (plan === 'pro' ? 'premium' : 'pro') : 'basic',
+    feature     : `Avoir plus de ${maxZones} zone${maxZones > 1 ? 's' : ''} de livraison`,
+  }
   const positionOk  = !isDefaultPosition(position)
   const stepDone    = posSaved && hasActive && !showSuggest
 
@@ -121,9 +131,11 @@ export default function ZonesPage() {
       title="Zones de livraison"
       subtitle="Où vous êtes, jusqu'où vous livrez"
       actions={posSaved && !showSuggest ? (
-        <button onClick={openCreate} className="btn-primary flex items-center gap-1.5">
-          <Plus size={14} /> <span className="hidden sm:inline">Ajouter une zone</span>
-        </button>
+        <PlanGate {...zoneGate}>
+          <button onClick={openCreate} className="btn-primary flex items-center gap-1.5">
+            <Plus size={14} /> <span className="hidden sm:inline">Ajouter une zone</span>
+          </button>
+        </PlanGate>
       ) : null}
     >
       <div className="space-y-4 max-w-2xl">
@@ -207,14 +219,21 @@ export default function ZonesPage() {
         ) : (
           <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-50">
-              <p className="text-sm font-semibold text-gray-900">Jusqu'où livrez-vous ?</p>
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="text-sm font-semibold text-gray-900">Jusqu'où livrez-vous ?</p>
+                {plan !== 'premium' && (
+                  <p className={`text-2xs font-medium whitespace-nowrap ${activeCount > maxZones ? 'text-amber-600' : 'text-gray-400'}`}>
+                    {activeCount} zone{activeCount > 1 ? 's' : ''} active{activeCount > 1 ? 's' : ''} sur {maxZones}
+                  </p>
+                )}
+              </div>
               <p className="text-2xs text-gray-400 mt-0.5">Le client paie les frais de la plus petite zone où il se trouve. Une zone désactivée n'est plus proposée.</p>
             </div>
             {zones.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center px-4">
                 <MapPin size={24} className="text-gray-200 mb-3" />
                 <p className="text-sm text-gray-400">Aucune zone : vos clients ne peuvent pas être livrés.</p>
-                <button onClick={openCreate} className="btn-primary mt-3 flex items-center gap-1.5"><Plus size={14} /> Ajouter une zone</button>
+                <div className="mt-3"><PlanGate {...zoneGate}><button onClick={openCreate} className="btn-primary flex items-center gap-1.5"><Plus size={14} /> Ajouter une zone</button></PlanGate></div>
               </div>
             ) : zones.map((zone, i) => (
               <div key={i} className={`flex items-center gap-4 px-5 py-4 ${i < zones.length - 1 ? 'border-b border-gray-50' : ''}`}>
