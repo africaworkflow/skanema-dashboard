@@ -38,7 +38,7 @@ export function SetupChecklist() {
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-gray-900">{allDone ? '🎉 Votre restaurant est prêt' : 'Votre restaurant prend ses premières commandes'}</p>
+            <p className="text-sm font-semibold text-gray-900">{allDone ? 'Votre restaurant est prêt' : 'Votre restaurant prend ses premières commandes'}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {doneCount} étape{doneCount > 1 ? 's' : ''} sur {steps.length}{!allDone && minutes > 0 ? ` · environ ${minutes} minutes` : ''}
             </p>
@@ -87,7 +87,7 @@ export function SetupChecklist() {
 
       {allDone && (
         <div className="px-5 py-4 bg-green-50 border-t border-green-100 flex items-center justify-between gap-3">
-          <p className="text-xs text-green-700 font-medium">🚀 Tout est en place : vos clients peuvent commander sur WhatsApp.</p>
+          <p className="text-xs text-green-700 font-medium flex items-center gap-1.5"><CheckCircle2 size={14} className="flex-shrink-0" /> Tout est en place : vos clients peuvent commander sur WhatsApp.</p>
           <button onClick={handleDismiss} className="text-xs text-green-600 underline flex-shrink-0">Fermer</button>
         </div>
       )}
