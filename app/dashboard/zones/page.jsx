@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Toggle } from '@/components/ui/Toggle'
-import { AddressSearch } from '@/components/ui/AddressSearch'
+import { AddressSearch, countryFromPhone } from '@/components/ui/AddressSearch'
 import { NextStepBanner } from '@/components/ui/NextStepBanner'
 import { formatFCFA } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
@@ -154,6 +154,7 @@ export default function ZonesPage() {
               <p className="text-xs text-gray-500 mt-1">C'est le point de départ : la distance jusqu'au client fixe ses frais de livraison.</p>
             </div>
             <AddressSearch prominentGps latitude={position.latitude} longitude={position.longitude}
+              country={countryFromPhone(user?.phone)} near={positionOk ? position : null}
               onSelect={({ latitude, longitude }) => setPosition({ latitude, longitude })} />
             <div className="flex gap-2">
               {posEdit && <button onClick={() => setPosEdit(false)} className="btn-ghost flex-1">Annuler</button>}

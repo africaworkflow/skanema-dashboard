@@ -2,8 +2,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { MapPin, Loader2, Search, X } from 'lucide-react'
 
+// Pays du restaurant d'après l'indicatif de son numéro (+221 → sn…), pour ne chercher que dans ce pays
+const DIAL_TO_COUNTRY = { '221': 'sn', '225': 'ci', '229': 'bj', '226': 'bf', '228': 'tg', '223': 'ml' }
+export function countryFromPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '').replace(/^00/, '')
+  return DIAL_TO_COUNTRY[d.slice(0, 3)] || null
+}
+
+// country : code pays (sn, ci…) — la recherche reste dans ce pays
+// near : { latitude, longitude } — les résultats proches de ce point passent en premier
 // prominentGps : gros bouton « Je suis au restaurant » en premier, coordonnées brutes masquées (parcours de démarrage)
-export function AddressSearch({ latitude, longitude, onSelect, prominentGps = false }) {
+export function AddressSearch({ latitude, longitude, onSelect, prominentGps = false, country = null, near = null }) {
   const [query,       setQuery]       = useState('')
   const [results,     setResults]     = useState([])
   const [searching,   setSearching]   = useState(false)
@@ -11,6 +20,7 @@ export function AddressSearch({ latitude, longitude, onSelect, prominentGps = fa
   const [coords,      setCoords]      = useState({ lat: latitude || '', lng: longitude || '' })
   const [gpsLoading,  setGpsLoading]  = useState(false)
   const [gpsError,    setGpsError]    = useState('')
+  const [noResult,    setNoResult]    = useState(false)
   const debounceRef = useRef(null)
   const wrapperRef  = useRef(null)
 
@@ -25,23 +35,28 @@ export function AddressSearch({ latitude, longitude, onSelect, prominentGps = fa
   }, [])
 
   const search = useCallback(async (q) => {
-    if (q.length < 3) { setResults([]); return }
+    if (q.length < 3) { setResults([]); setNoResult(false); return }
     setSearching(true)
     try {
-      // Nominatim OpenStreetMap — gratuit, pas de clé API
-      const res  = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&addressdetails=1`,
-        { headers: { 'Accept-Language': 'fr' } }
-      )
+      // Nominatim OpenStreetMap — gratuit, pas de clé API. Limité au pays du restaurant,
+      // avec une préférence (sans exclusion) pour les lieux proches de sa position.
+      const params = new URLSearchParams({ q, format: 'json', limit: '6', addressdetails: '1', 'accept-language': 'fr' })
+      if (country) params.set('countrycodes', country)
+      if (near && Number.isFinite(near.latitude) && Number.isFinite(near.longitude)) {
+        const d = 0.25 // ≈ 25 km autour
+        params.set('viewbox', [near.longitude - d, near.latitude + d, near.longitude + d, near.latitude - d].join(','))
+      }
+      const res  = await fetch(`https://nominatim.openstreetmap.org/search?${params}`)
       const data = await res.json()
-      setResults(data)
+      setResults(Array.isArray(data) ? data : [])
+      setNoResult(Array.isArray(data) && data.length === 0)
       setShowResults(true)
     } catch (_) {
-      setResults([])
+      setResults([]); setNoResult(false)
     } finally {
       setSearching(false)
     }
-  }, [])
+  }, [country, near?.latitude, near?.longitude])
 
   const handleInput = (val) => {
     setQuery(val)
@@ -104,7 +119,7 @@ export function AddressSearch({ latitude, longitude, onSelect, prominentGps = fa
           <input
             value={query}
             onChange={e => handleInput(e.target.value)}
-            placeholder={prominentGps ? 'Rechercher l\'adresse…' : 'Recherchez l\'adresse de votre restaurant…'}
+            placeholder={prominentGps ? 'Quartier, rue ou lieu connu…' : 'Recherchez l\'adresse de votre restaurant…'}
             className="input pl-8 pr-8 text-base sm:text-sm"
           />
           {searching && (
@@ -121,6 +136,9 @@ export function AddressSearch({ latitude, longitude, onSelect, prominentGps = fa
           )}
         </div>
 
+        {showResults && noResult && !searching && (
+          <p className="mt-1.5 text-xs text-gray-500">Aucun résultat. Essayez le nom du quartier ou d'un lieu connu à côté{prominentGps ? ', ou utilisez votre position.' : '.'}</p>
+        )}
         {/* Résultats */}
         {showResults && results.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
