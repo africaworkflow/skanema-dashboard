@@ -22,15 +22,17 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED',       label: 'Annulé' },
 ]
 
+// Une commande payée (Wave) est déjà confirmée au client automatiquement : on passe directement à la préparation,
+// comme une commande cash (créée « Confirmé »). Plus de bouton « Confirmer » ni de message en double.
 const NEXT_STATUS = {
-  PAID      : 'CONFIRMED',
+  PAID      : 'PREPARING',
   CONFIRMED : 'PREPARING',
   PREPARING : 'DELIVERING',
   DELIVERING: 'DELIVERED',
 }
 
 const NEXT_LABEL = {
-  PAID      : 'Confirmer',
+  PAID      : 'Démarrer préparation',
   CONFIRMED : 'Démarrer préparation',
   PREPARING : 'Envoyer en livraison',
   DELIVERING: 'Marquer livré',
