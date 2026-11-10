@@ -300,7 +300,7 @@ export default function CommandesPage() {
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-xs text-gray-600">
                               <MapPin size={12} className="text-gray-400 flex-shrink-0" />
-                              Zone {order.location?.zoneName || order.location?.zone || '—'}
+                              {(() => { const z = order.location?.zoneName || order.location?.zone || '—'; return /^zone/i.test(z) ? z : `Zone ${z}` })()}
                             </div>
                             {order.estimatedDeliveryTime && (
                               <div className="flex items-center gap-2 text-xs text-gray-600">

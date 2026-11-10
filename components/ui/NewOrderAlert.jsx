@@ -33,7 +33,7 @@ function writeSeen(ids) {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify(ids.slice(-SEEN_MAX))) } catch (_) {}
 }
 
-const nf = (v) => new Intl.NumberFormat('fr-FR').format(Math.round(v || 0))
+const nf = (v) => new Intl.NumberFormat('fr-FR').format(Math.round(v || 0)).replace(/\u202f/g, '\u00a0')
 function timeAgo(date) {
   const s = Math.floor((Date.now() - new Date(date)) / 1000)
   if (s < 60)   return 'à l’instant'
