@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { NextStepBanner } from '@/components/ui/NextStepBanner'
 import { useAuth } from '@/hooks/useAuth'
-import { Loader2, CheckCircle2, Wifi, WifiOff, RefreshCw, ChevronDown, Save, Webhook, Smartphone, UserRound, PhoneOff } from 'lucide-react'
+import { Loader2, CheckCircle2, Wifi, WifiOff, RefreshCw, ChevronDown, Save, Webhook } from 'lucide-react'
 import api from '@/lib/api'
 
 const META_APP_ID = process.env.NEXT_PUBLIC_META_APP_ID || '1320436230274815'
@@ -145,14 +145,6 @@ export default function WhatsAppPage() {
             <p className="text-xs text-gray-500 leading-relaxed mb-5">
               Connectez votre numéro WhatsApp Business en quelques clics. Vous aurez besoin d'un compte Facebook et d'un numéro dédié.
             </p>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
-              <p className="text-sm font-semibold text-amber-900 mb-2">Avant de commencer, préparez :</p>
-              <ul className="space-y-1.5 text-xs text-amber-900 leading-relaxed">
-                <li className="flex gap-2"><Smartphone size={14} className="flex-shrink-0 mt-px" aria-hidden="true" /><span>Le téléphone où se trouve la puce de ce numéro : vous allez recevoir un code par SMS.</span></li>
-                <li className="flex gap-2"><UserRound size={14} className="flex-shrink-0 mt-px" aria-hidden="true" /><span>Votre compte Facebook (le vôtre ou celui du restaurant).</span></li>
-                <li className="flex gap-2"><PhoneOff size={14} className="flex-shrink-0 mt-px" aria-hidden="true" /><span>Un numéro sans WhatsApp. S'il a déjà WhatsApp, supprimez d'abord l'appli WhatsApp de ce téléphone.</span></li>
-              </ul>
-            </div>
             {error && <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-4"><p className="text-xs text-red-600">{error}</p></div>}
             {success ? (
               <div className="flex items-center gap-2 text-green-600">

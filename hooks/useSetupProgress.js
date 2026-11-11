@@ -7,7 +7,7 @@ export const SETUP_STEPS = [
   { id: 'account',  label: 'Compte créé',                desc: 'Votre restaurant est enregistré sur Skanema.', link: null, minutes: 0 },
   { id: 'menu',     label: 'Ajoutez vos plats',          desc: 'Commencez par vos 5 plats les plus vendus, avec leur prix. Vous compléterez plus tard.', link: '/dashboard/menu', minutes: 5, cta: 'Ajouter mes plats' },
   { id: 'zones',    label: 'Indiquez où vous livrez',    desc: 'La position du restaurant et vos frais de livraison. Sans ça, vos clients ne peuvent pas commander.', link: '/dashboard/zones', minutes: 2, cta: 'C\'est parti' },
-  { id: 'whatsapp', label: 'Connectez votre WhatsApp',   desc: 'Le numéro sur lequel vos clients vont commander. Prévoyez le téléphone de ce numéro et votre compte Facebook.', link: '/dashboard/whatsapp', minutes: 5, cta: 'Connecter WhatsApp' },
+  { id: 'whatsapp', label: 'Connectez votre WhatsApp',   desc: 'Le numéro sur lequel vos clients vont commander. Prévoyez un numéro qui n\'est pas encore sur WhatsApp.', link: '/dashboard/whatsapp', minutes: 5, cta: 'Connecter WhatsApp' },
   { id: 'test',     label: 'Passez une commande test',   desc: 'Depuis un autre téléphone, envoyez « Bonjour » au numéro WhatsApp du restaurant et commandez un plat en cash. L\'étape se coche toute seule.', link: null, minutes: 2 },
 ]
 

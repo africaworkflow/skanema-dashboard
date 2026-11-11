@@ -52,7 +52,6 @@ export function YangoQrModal({ link, order, onClose }) {
           </button>
         </div>
 
-        <a href={link} className="block text-center text-2xs text-gray-400 underline mt-4">Ouvrir Yango sur cet ordinateur</a>
       </div>
     </div>
   )
