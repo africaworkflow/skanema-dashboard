@@ -1,14 +1,25 @@
 'use client'
 import { Suspense, useState } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Loader2, CheckCircle2, Eye, EyeOff } from 'lucide-react'
+import Cookies from 'js-cookie'
 import { BrandLogo } from '@/components/ui/BrandLogo'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.skanema.com'
 
+// Ferme toute session ouverte dans ce navigateur (sinon la page de connexion renverrait
+// vers le tableau de bord du compte qui était déjà connecté, pas celui dont on vient de changer le mot de passe)
+function closeSession() {
+  for (const domain of ['.skanema.com', 'skanema.com', 'dashboard.skanema.com', undefined]) {
+    Cookies.remove('skanema_token', { domain, path: '/' })
+    Cookies.remove('skanema_user',  { domain, path: '/' })
+  }
+  document.cookie = 'skanema_token=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=.skanema.com;path=/'
+  document.cookie = 'skanema_user=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=.skanema.com;path=/'
+}
+
 function ResetPasswordContent() {
   const searchParams = useSearchParams()
-  const router       = useRouter()
   const token        = searchParams.get('token')
 
   const [password,  setPassword]  = useState('')
@@ -38,8 +49,9 @@ function ResetPasswordContent() {
       })
       const data = await res.json()
       if (data.success) {
+        closeSession()
         setSuccess(true)
-        setTimeout(() => router.push('/login'), 3000)
+        setTimeout(() => { window.location.href = '/login' }, 3000)
       } else {
         setError(data.message || 'Lien invalide ou expiré.')
       }
