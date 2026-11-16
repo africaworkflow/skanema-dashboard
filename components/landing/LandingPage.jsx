@@ -9,6 +9,7 @@ const LEGAL_LINKS = [
   { label: 'Politique de confidentialité',  href: '/politique-de-confidentialite' },
   { label: "Conditions d'utilisation",      href: '/cgu' },
   { label: 'Conditions générales de vente', href: '/cgv' },
+  { label: 'Politique de remboursement',    href: '/politique-de-remboursement' },
 ]
 
 function Logo({ width, height, color, dot }) {

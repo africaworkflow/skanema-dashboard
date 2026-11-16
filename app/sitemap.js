@@ -1,7 +1,7 @@
 const BASE_URL = 'https://www.skanema.com'
 
 // Pages publiques uniquement : /login, /onboarding et /dashboard sont exclues (voir robots.txt)
-const LEGAL_PAGES = ['/mentions-legales', '/politique-de-confidentialite', '/cgu', '/cgv']
+const LEGAL_PAGES = ['/mentions-legales', '/politique-de-confidentialite', '/cgu', '/cgv', '/politique-de-remboursement']
 
 export default function sitemap() {
   return [
