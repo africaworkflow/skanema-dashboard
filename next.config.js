@@ -17,6 +17,18 @@ const nextConfig = {
     }
   },
 
+  // Le tableau de bord (dashboard.skanema.com) sert le même site : on interdit son indexation
+  // pour que Google ne voie qu'une seule version des pages publiques, celle de www.skanema.com
+  async headers() {
+    return [
+      {
+        source : '/:path*',
+        has    : [{ type: 'host', value: 'dashboard.skanema.com' }],
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+    ]
+  },
+
   async redirects() {
     return [
       // Redirige skanema.com/dashboard/* → dashboard.skanema.com/dashboard/*

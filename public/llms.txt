@@ -5,13 +5,15 @@
 ## Comment ça marche
 
 1. Découvrir : le client clique sur le lien du commerce (bio, réseaux sociaux) ou scanne son QR code (comptoir, sticker sur les commandes). La discussion WhatsApp s'ouvre.
-2. Commander : le bot envoie le catalogue en ligne. Le client compose son panier en quelques touches, sans compte ni formulaire, puis l'envoie sur WhatsApp.
-3. Payer : le bot demande la localisation, calcule les frais de livraison, envoie le total et le choix du paiement (Wave ou Orange Money).
+2. Commander : la solution envoie le catalogue en ligne. Le client compose son panier en quelques touches, sans compte ni formulaire, puis l'envoie sur WhatsApp.
+3. Payer : la solution demande la localisation, calcule les frais de livraison, envoie le total et le choix du paiement (Wave ou Orange Money).
 4. Livrer : le commerçant suit chaque commande depuis son tableau de bord et le client reçoit les mises à jour sur WhatsApp.
 
 ## Fonctionnalités principales
 
-- Bot WhatsApp dédié à chaque commerce, connecté au numéro WhatsApp Business du commerçant
+- Assistant de commande WhatsApp dédié à chaque commerce, connecté au numéro WhatsApp Business du commerçant
+- Livraison en un clic avec Yango (course Express Moto, adresse du client déjà remplie)
+- Reçu PDF envoyé au client dans la conversation
 - Catalogue en ligne personnalisé (photos, catégories, options)
 - Paiement mobile Wave et Orange Money
 - Zones de livraison avec calcul automatique des frais selon la position du client
@@ -21,13 +23,13 @@
 
 ## Pour qui
 
-Restaurants, pharmacies, boutiques et tout commerce qui reçoit des commandes au quotidien, au Sénégal et en Afrique de l'Ouest francophone.
+Restaurants, fast-foods, traiteurs, boutiques et tout commerce qui reçoit des commandes au quotidien. Pays : Sénégal, Côte d'Ivoire, Bénin, Burkina Faso, Togo et Mali.
 
 ## Tarifs
 
 - Essai gratuit : 0 FCFA pendant 14 jours — 10 articles au catalogue, 1 zone de livraison
 - Pro : 35 000 FCFA/mois — 25 articles, 3 zones de livraison, statistiques avancées
-- Premium : 75 000 FCFA/mois — articles et zones illimités, support prioritaire
+- Premium : 75 000 FCFA/mois — articles et zones illimités, menu mis en ligne par l'équipe Skanema, kit de QR codes imprimés, ligne WhatsApp directe avec l'équipe
 
 Aucune commission sur les ventes : abonnement mensuel fixe, payable par mobile money (Wave, Orange Money, MTN, Moov…), sans engagement.
 
@@ -41,4 +43,6 @@ Aucune commission sur les ventes : abonnement mensuel fixe, payable par mobile m
 
 ## Éditeur
 
-Skanema est une solution de TERYAT SUARL, Dakar, Sénégal.
+Skanema est une solution de TERYAT SUARL, société basée à Dakar (Sénégal).
+Site officiel : https://www.skanema.com — Instagram : @skanemasn.
+À ne pas confondre avec d'autres organisations qui utilisent le mot « Skanema » (par exemple le surnom d'un lycée indonésien) : Skanema (skanema.com) est la solution sénégalaise de commandes et paiements sur WhatsApp.

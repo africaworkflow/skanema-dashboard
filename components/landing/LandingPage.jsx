@@ -58,7 +58,7 @@ export function LandingPage() {
         <div className={s.wrap} style={{ display: 'flex', flexWrap: 'wrap', gap: 48, alignItems: 'center' }}>
           <div style={{ flex: '1 1 520px' }}>
             <p style={{ fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', margin: '0 0 20px' }}>Sur WhatsApp · Wave · Orange Money</p>
-            <h1 className={s.h} style={{ fontSize: 'clamp(38px,8vw,104px)' }}>Commande.<br />Paie.<br />Reçois.</h1>
+            <h1 className={s.h} style={{ fontSize: 'clamp(38px,8vw,104px)' }}><span className="sr-only">Skanema, commandes et paiements sur WhatsApp : </span>Commande.<br />Paie.<br />Reçois.</h1>
             <p style={{ fontSize: 20, lineHeight: 1.5, maxWidth: 560, margin: '28px 0 36px' }}>
               Vos clients découvrent, commandent, paient par Wave ou Orange Money et se font livrer, sans jamais quitter WhatsApp.
             </p>

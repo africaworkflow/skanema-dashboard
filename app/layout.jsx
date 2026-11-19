@@ -31,7 +31,6 @@ export const metadata = {
   publisher: 'Skanema',
 
   manifest: '/manifest.json',
-  themeColor: '#DC2626',
   appleWebApp: {
     capable    : true,
     statusBarStyle: 'default',
@@ -73,8 +72,16 @@ export const metadata = {
     },
   },
 
+  // Chaque page déclare sa propre adresse comme référence (avant : toutes pointaient vers l'accueil,
+  // ce qui disait à Google que les autres pages étaient des doublons à ignorer)
   alternates: {
-    canonical: BASE_URL,
+    canonical: './',
+  },
+
+  // Codes de vérification Google Search Console et Bing Webmaster Tools (variables Vercel, facultatives)
+  verification: {
+    ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } : {}),
+    ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { other: { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } } : {}),
   },
 
   icons: {
@@ -82,6 +89,10 @@ export const metadata = {
   shortcut: '/icon_SKANEMA.png',
   apple   : '/icon_SKANEMA.png',
 },
+}
+
+export const viewport = {
+  themeColor: '#DC2626',
 }
 
 export default function RootLayout({ children }) {

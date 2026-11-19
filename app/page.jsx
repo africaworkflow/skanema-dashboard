@@ -6,38 +6,57 @@ export const metadata = {
   alternates : { canonical: 'https://www.skanema.com' },
 }
 
+const SITE = 'https://www.skanema.com'
+const ORG = {
+  '@type'       : 'Organization',
+  '@id'         : `${SITE}/#organisation`,
+  name          : 'Skanema',
+  legalName     : 'TERYAT SUARL',
+  url           : SITE,
+  logo          : `${SITE}/icon_SKANEMA.png`,
+  description   : 'Skanema est une solution sénégalaise, éditée par TERYAT SUARL à Dakar, qui permet aux commerçants de recevoir commandes et paiements Wave ou Orange Money directement sur WhatsApp.',
+  foundingLocation: 'Dakar, Sénégal',
+  address       : { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
+  sameAs        : ['https://www.instagram.com/skanemasn/'],
+  contactPoint  : {
+    '@type'          : 'ContactPoint',
+    contactType      : 'customer support',
+    telephone        : '+221784632103',
+    email            : 'contact@skanema.com',
+    availableLanguage: ['French'],
+  },
+}
+
 const jsonLd = {
-  '@context'   : 'https://schema.org',
-  '@type'      : 'SoftwareApplication',
-  name         : 'Skanema',
-  applicationCategory: 'BusinessApplication',
-  operatingSystem: 'Web, iOS, Android',
-  description  : 'Plateforme permettant aux commerçants (restaurants, pharmacies, boutiques) de recevoir commandes et paiements Wave ou Orange Money directement sur WhatsApp, avec catalogue en ligne, QR code et suivi de livraison.',
-  url          : 'https://www.skanema.com',
-  offers       : {
-    '@type'   : 'AggregateOffer',
-    priceCurrency: 'XOF',
-    lowPrice  : '35000',
-    highPrice : '75000',
-    offerCount: '2',
-  },
-  creator: {
-    '@type': 'Organization',
-    name   : 'Skanema',
-    url    : 'https://www.skanema.com',
-    logo   : 'https://www.skanema.com/icon_SKANEMA.png',
-    contactPoint: {
-      '@type'      : 'ContactPoint',
-      contactType  : 'customer support',
-      telephone    : '+221784632103',
-      email        : 'contact@skanema.com',
-      availableLanguage: ['French'],
+  '@context': 'https://schema.org',
+  '@graph'  : [
+    ORG,
+    {
+      '@type'    : 'WebSite',
+      '@id'      : `${SITE}/#site`,
+      url        : SITE,
+      name       : 'Skanema',
+      inLanguage : 'fr',
+      publisher  : { '@id': `${SITE}/#organisation` },
     },
-    areaServed: [
-      'Sénégal', 'Côte d\'Ivoire', 'Mali', 'Guinée',
-      'Burkina Faso', 'Niger', 'Togo', 'Bénin',
-    ],
-  },
+    {
+      '@type'            : 'SoftwareApplication',
+      name               : 'Skanema',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem    : 'Web, WhatsApp',
+      url                : SITE,
+      description        : 'Commandes et paiements sur WhatsApp pour les commerçants : catalogue en ligne, paiement Wave et Orange Money, zones et frais de livraison, QR codes et tableau de bord en temps réel.',
+      publisher          : { '@id': `${SITE}/#organisation` },
+      areaServed         : ['Sénégal', 'Côte d\'Ivoire', 'Bénin', 'Burkina Faso', 'Togo', 'Mali'],
+      offers             : {
+        '@type'      : 'AggregateOffer',
+        priceCurrency: 'XOF',
+        lowPrice     : '35000',
+        highPrice    : '75000',
+        offerCount   : '2',
+      },
+    },
+  ],
 }
 
 export default function Home() {
