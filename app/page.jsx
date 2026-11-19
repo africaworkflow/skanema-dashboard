@@ -17,7 +17,11 @@ const ORG = {
   description   : 'Skanema est une solution sénégalaise, éditée par TERYAT SUARL à Dakar, qui permet aux commerçants de recevoir commandes et paiements Wave ou Orange Money directement sur WhatsApp.',
   foundingLocation: 'Dakar, Sénégal',
   address       : { '@type': 'PostalAddress', addressLocality: 'Dakar', addressCountry: 'SN' },
-  sameAs        : ['https://www.instagram.com/skanemasn/'],
+  sameAs        : [
+    'https://www.instagram.com/appskanema/',
+    'https://www.facebook.com/profile.php?id=61573896037799',
+    'https://x.com/getskanema',
+  ],
   contactPoint  : {
     '@type'          : 'ContactPoint',
     contactType      : 'customer support',
