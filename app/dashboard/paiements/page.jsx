@@ -4,6 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Toggle } from '@/components/ui/Toggle'
 import { Loader2, CheckCircle2, Eye, EyeOff, AlertTriangle, Banknote, ChevronDown, KeyRound } from 'lucide-react'
 import api, { updatePaydunya } from '@/lib/api'
+import { PayoutSettings } from '@/components/payments/PayoutSettings'
 
 // Logos officiels des moyens de paiement (dossier public/payments)
 const LOGO = {
@@ -43,6 +44,8 @@ export default function PaiementsPage() {
   const [wave,      setWave]      = useState({ apiKey: '', webhookSecret: '' })
   const [waveMsg,   setWaveMsg]   = useState('')
   const [waveBusy,  setWaveBusy]  = useState(false)
+  const [payout,    setPayout]    = useState(null)   // numéro de réception vérifié
+  const [payments,  setPayments]  = useState(null)   // { mode, feesPaidBy, example }
 
   useEffect(() => {
     api.get('/api/auth/me').then((res) => {
@@ -50,6 +53,8 @@ export default function PaiementsPage() {
       setPd(d.paydunya || null)
       setCashEnabled(d.cashEnabled || false)
       setWave({ apiKey: d.waveApiKey || '', webhookSecret: d.waveWebhookSecret || '' })
+      setPayout(d.payout || null)
+      setPayments(d.payments || null)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
@@ -100,6 +105,7 @@ export default function PaiementsPage() {
     </DashboardLayout>
   )
 
+  const platform   = payments?.mode === 'platform'   // Skanema encaisse : plus de clés à saisir
   const configured = Boolean(pd?.configured)
   const showForm   = !configured || editKeys
   const enabledCount = (pd?.methods || []).filter((m) => m.enabled).length
@@ -109,12 +115,14 @@ export default function PaiementsPage() {
       <div className="max-w-2xl space-y-5">
         {notice && <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-xs text-green-700"><CheckCircle2 size={14} /> {notice}</div>}
 
+        <PayoutSettings payout={payout} payments={payments} onPayout={setPayout} onFees={(v) => setPayments((p) => ({ ...p, feesPaidBy: v }))} />
+
         {/* ── Paiement mobile par PayDunya ── */}
         <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
           <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-gray-50">
             <div>
               <p className="text-sm font-semibold text-gray-900">Paiement mobile</p>
-              <p className="text-xs text-gray-400 mt-0.5">Par PayDunya, l'argent arrive directement sur votre compte</p>
+              <p className="text-xs text-gray-400 mt-0.5">{platform ? 'Chaque paiement arrive automatiquement sur votre numéro' : 'Par PayDunya, l\'argent arrive directement sur votre compte'}</p>
             </div>
             <span className={`flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap ${configured ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${configured ? 'bg-green-500' : 'bg-amber-400'}`} />
@@ -142,8 +150,8 @@ export default function PaiementsPage() {
               {configured && enabledCount === 0 && <p className="text-2xs text-amber-600 mt-1.5">Aucun moyen activé : vos clients ne peuvent payer qu'en espèces.</p>}
             </div>
 
-            {/* Clés PayDunya */}
-            {configured && !editKeys && (
+            {/* Clés PayDunya (inutiles quand Skanema encaisse) */}
+            {!platform && configured && !editKeys && (
               <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50 rounded-xl px-4 py-3">
                 <p className="text-xs text-gray-600 flex items-center gap-2"><KeyRound size={14} className="text-gray-400" /> Clés enregistrées{pd.configuredAt ? ` le ${day(pd.configuredAt)}` : ''}</p>
                 <div className="flex gap-3 text-xs font-medium">
@@ -161,7 +169,7 @@ export default function PaiementsPage() {
                 </div>
               </div>
             )}
-            {showForm && (
+            {!platform && showForm && (
               <div className="space-y-3">
                 <p className="text-xs text-gray-500 leading-relaxed">
                   Dans votre espace PayDunya, copiez les clés de <b className="text-gray-700">production</b> de votre application (pas celles de test),
@@ -199,7 +207,7 @@ export default function PaiementsPage() {
         </section>
 
         {/* ── Ancienne connexion Wave directe ── */}
-        <details className="group bg-white border border-gray-100 rounded-xl">
+        {!platform && <details className="group bg-white border border-gray-100 rounded-xl">
           <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none list-none">
             <div>
               <p className="text-sm font-medium text-gray-700">Wave Business en direct (ancienne connexion)</p>
@@ -216,7 +224,7 @@ export default function PaiementsPage() {
               {waveMsg && <span className="text-xs text-gray-500">{waveMsg}</span>}
             </div>
           </div>
-        </details>
+        </details>}
       </div>
     </DashboardLayout>
   )
