@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { getOrders, updateOrder, getZones } from '@/lib/api'
 import { yangoDeliveryLink } from '@/lib/yango'
 import { YangoQrModal } from '@/components/ui/YangoQrModal'
+import { CancelOrderModal } from '@/components/ui/CancelOrderModal'
 import { isDefaultPosition } from '@/hooks/useSetupProgress'
 import { OPEN_ORDER_EVENT } from '@/components/ui/NewOrderAlert'
 import { formatFCFA, formatDate, STATUS_LABELS } from '@/lib/utils'
@@ -41,6 +42,9 @@ const NEXT_LABEL = {
   DELIVERING: 'Marquer livré',
 }
 
+// Annulation possible pour une commande payée en espèces, jusqu'à la livraison
+const canCancel = (o) => o.payment?.provider === 'cash' && ['CONFIRMED', 'PREPARING', 'DELIVERING'].includes(o.status)
+
 export default function CommandesPage() {
   const [orders,    setOrders]    = useState([])
   const [loading,   setLoading]   = useState(true)
@@ -53,6 +57,7 @@ export default function CommandesPage() {
   const [shopPos,   setShopPos]   = useState(null)   // position du restaurant, départ de la course Yango
   const [copied,    setCopied]    = useState(null)
   const [yangoQr,   setYangoQr]   = useState(null)   // { link, order } : QR code à scanner, sur ordinateur
+  const [cancelling, setCancelling] = useState(null) // commande en espèces à annuler (fenêtre de confirmation)
   const LIMIT = 15
 
   const load = useCallback(async () => {
@@ -349,6 +354,15 @@ export default function CommandesPage() {
                               {nextLabel}
                             </button>
                           )}
+
+                          {canCancel(order) && (
+                            <div className="flex justify-end mt-3 pt-1 border-t border-gray-100">
+                              <button onClick={() => setCancelling(order)}
+                                className="text-xs font-medium text-red-700 underline underline-offset-2 hover:text-red-800 py-2 px-1">
+                                Annuler la commande
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -385,6 +399,7 @@ export default function CommandesPage() {
         )}
       </div>
       {yangoQr && <YangoQrModal link={yangoQr.link} order={yangoQr.order} onClose={() => setYangoQr(null)} />}
+      {cancelling && <CancelOrderModal order={cancelling} onClose={() => setCancelling(null)} onDone={() => { setCancelling(null); load() }} />}
     </DashboardLayout>
   )
 }
