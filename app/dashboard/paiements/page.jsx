@@ -5,6 +5,7 @@ import { Toggle } from '@/components/ui/Toggle'
 import { Loader2, CheckCircle2, Eye, EyeOff, AlertTriangle, Banknote, ChevronDown, KeyRound } from 'lucide-react'
 import api, { updatePaydunya } from '@/lib/api'
 import { PayoutSettings } from '@/components/payments/PayoutSettings'
+import { PayoutHistory } from '@/components/payments/PayoutHistory'
 
 // Logos officiels des moyens de paiement (dossier public/payments)
 const LOGO = {
@@ -46,6 +47,7 @@ export default function PaiementsPage() {
   const [waveBusy,  setWaveBusy]  = useState(false)
   const [payout,    setPayout]    = useState(null)   // numéro de réception vérifié
   const [payments,  setPayments]  = useState(null)   // { mode, feesPaidBy, example }
+  const [tab,       setTab]       = useState('history') // quand Skanema encaisse : Historique | Réglages
 
   useEffect(() => {
     api.get('/api/auth/me').then((res) => {
@@ -110,9 +112,28 @@ export default function PaiementsPage() {
   const showForm   = !configured || editKeys
   const enabledCount = (pd?.methods || []).filter((m) => m.enabled).length
 
+  const tabs = platform && (
+    <div role="tablist" aria-label="Sections de la page Paiements" className="grid grid-cols-2 sm:inline-grid gap-1 bg-gray-100 rounded-xl p-1">
+      {[['history', 'Historique'], ['settings', 'Réglages']].map(([k, label]) => (
+        <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
+          className={`px-4 py-2.5 sm:py-2 rounded-lg text-sm ${tab === k ? 'bg-white font-semibold text-gray-900 shadow-sm' : 'font-medium text-gray-600'}`}>{label}</button>
+      ))}
+    </div>
+  )
+
+  if (platform && tab === 'history') return (
+    <DashboardLayout title="Paiements" subtitle="Chaque paiement en ligne arrive automatiquement sur votre numéro">
+      <div className="max-w-5xl space-y-5">
+        {tabs}
+        <PayoutHistory payout={payout} onSettings={() => setTab('settings')} />
+      </div>
+    </DashboardLayout>
+  )
+
   return (
     <DashboardLayout title="Paiements" subtitle="Comment vos clients paient">
       <div className="max-w-2xl space-y-5">
+        {tabs}
         {notice && <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-xs text-green-700"><CheckCircle2 size={14} /> {notice}</div>}
 
         <PayoutSettings payout={payout} payments={payments} onPayout={setPayout} onFees={(v) => setPayments((p) => ({ ...p, feesPaidBy: v }))} />
