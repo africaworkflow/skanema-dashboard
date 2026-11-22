@@ -7,7 +7,8 @@ const OPS = { wave: 'Wave', om: 'Orange Money' }
 const fcfa = (n) => `${Number(n || 0).toLocaleString('fr-FR')} FCFA`
 const fmtPhone = (p) => String(p || '').replace(/^(\d{2})(\d{3})(\d{2})(\d{2})$/, '$1 $2 $3 $4')
 const hour = (d) => new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Dakar' })
-const dayHour = (d, period) => (period === 'today' ? hour(d) : `${new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', timeZone: 'Africa/Dakar' })} ${hour(d)}`)
+const dayHour = (d, period) => (period === 'today' ? hour(d)
+  : `${new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', ...(period === 'custom' ? { year: '2-digit' } : {}), timeZone: 'Africa/Dakar' })} ${hour(d)}`)
 
 const STATE = {
   received: { label: 'Reçu',            cls: 'bg-green-50 text-green-700' },
@@ -48,17 +49,24 @@ export function PayoutHistory({ payout, online, onSettings }) {
   const [error, setError]   = useState('')
   const [exporting, setExporting] = useState(false)
 
-  const params = { period, ...(method ? { method } : {}), ...(status ? { status } : {}) }
+  const [from, setFrom]     = useState('')
+  const [to, setTo]         = useState('')
+
+  const custom = period === 'custom'
+  const ready  = !custom || Boolean(from && to && from <= to)   // dates au choix : attendre les deux dates
+  const params = { period, ...(custom ? { from, to } : {}), ...(method ? { method } : {}), ...(status ? { status } : {}) }
 
   useEffect(() => {
+    if (!ready) return
     let live = true
     setError('')
     getPayouts(params)
       .then((r) => live && setData(r.data))
-      .catch(() => live && setError('Historique indisponible. Réessayez.'))
+      .catch((e) => live && (setData((d) => d && { ...d, payouts: [] }), setError(e?.response?.status === 400 ? 'Choisissez une période d\'un an au plus.' : 'Historique indisponible. Réessayez.')))
     return () => { live = false }
-  }, [period, method, status]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [period, from, to, method, status]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const today = new Date().toISOString().slice(0, 10)
   const download = async () => {
     setExporting(true); setError('')
     try {
@@ -66,7 +74,8 @@ export function PayoutHistory({ payout, online, onSettings }) {
       const url = URL.createObjectURL(new Blob([r.data], { type: 'text/csv;charset=utf-8' }))
       const a = document.createElement('a')
       a.href = url
-      a.download = `skanema-paiements-${new Date().toISOString().slice(0, 10)}.csv`
+      const label = { today, '7d': `7-jours-${today}`, month: `mois-en-cours-${today}`, last_month: `mois-dernier-${today}`, year: `annee-${today.slice(0, 4)}`, custom: from === to ? from : `${from}_${to}` }[period]
+      a.download = `skanema-paiements-${label}.csv`
       document.body.appendChild(a); a.click(); a.remove()
       setTimeout(() => URL.revokeObjectURL(url), 10000)
     } catch (_) { setError('Export impossible. Réessayez.') }
@@ -74,7 +83,7 @@ export function PayoutHistory({ payout, online, onSettings }) {
   }
 
   const s = data?.summary
-  const rows = data?.payouts || []
+  const rows = ready ? data?.payouts || [] : []
   return (
     <div className="space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -104,8 +113,19 @@ export function PayoutHistory({ payout, online, onSettings }) {
             <label className="flex items-center gap-1.5 text-xs text-gray-600">Période
               <select value={period} onChange={(e) => setPeriod(e.target.value)} className={SELECT}>
                 <option value="today">Aujourd'hui</option><option value="7d">7 derniers jours</option><option value="month">Ce mois-ci</option>
+                <option value="last_month">Mois dernier</option><option value="year">Cette année</option><option value="custom">Dates au choix</option>
               </select>
             </label>
+            {custom && (
+              <>
+                <label className="flex items-center gap-1.5 text-xs text-gray-600">Du
+                  <input type="date" value={from} max={to || today} onChange={(e) => setFrom(e.target.value)} className={SELECT} />
+                </label>
+                <label className="flex items-center gap-1.5 text-xs text-gray-600">Au
+                  <input type="date" value={to} min={from || undefined} max={today} onChange={(e) => setTo(e.target.value)} className={SELECT} />
+                </label>
+              </>
+            )}
             <label className="flex items-center gap-1.5 text-xs text-gray-600">Moyen
               <select value={method} onChange={(e) => setMethod(e.target.value)} className={SELECT}>
                 <option value="">Tous</option><option value="online">En ligne</option><option value="cash">Espèces</option>
@@ -125,7 +145,7 @@ export function PayoutHistory({ payout, online, onSettings }) {
 
         {!data && !error && <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin text-gray-300" /></div>}
         {error && <p className="px-5 py-6 text-xs text-red-600">{error}</p>}
-        {data && !rows.length && <p className="px-5 py-8 text-sm text-gray-500 text-center">Aucun paiement sur cette période.</p>}
+        {data && ready && !error && !rows.length && <p className="px-5 py-8 text-sm text-gray-500 text-center">Aucun paiement sur cette période.</p>}
 
         {rows.length > 0 && (
           <>
