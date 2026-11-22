@@ -47,7 +47,8 @@ export default function PaiementsPage() {
   const [waveBusy,  setWaveBusy]  = useState(false)
   const [payout,    setPayout]    = useState(null)   // numéro de réception vérifié
   const [payments,  setPayments]  = useState(null)   // { mode, feesPaidBy, example }
-  const [tab,       setTab]       = useState('history') // quand Skanema encaisse : Historique | Réglages
+  const [tab,       setTab]       = useState('history') // Historique | Réglages
+  const [onlinePay, setOnlinePay] = useState(false)     // les clients peuvent payer en ligne aujourd'hui
 
   useEffect(() => {
     api.get('/api/auth/me').then((res) => {
@@ -57,8 +58,12 @@ export default function PaiementsPage() {
       setWave({ apiKey: d.waveApiKey || '', webhookSecret: d.waveWebhookSecret || '' })
       setPayout(d.payout || null)
       setPayments(d.payments || null)
+      setOnlinePay(Boolean(d.onlinePaymentActive))
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
+
+  // Après un changement de clés ou de moyens : les clients peuvent-ils encore payer en ligne ?
+  const refreshOnline = () => api.get('/api/auth/me').then((r) => setOnlinePay(Boolean(r.data.data.onlinePaymentActive))).catch(() => {})
 
   const flash = (m) => { setNotice(m); setTimeout(() => setNotice(''), 3500) }
 
@@ -68,7 +73,7 @@ export default function PaiementsPage() {
     setSaving(true)
     try {
       const r = await updatePaydunya(keys)
-      setPd(r.data.paydunya); setKeys({ masterKey: '', privateKey: '', token: '' }); setEditKeys(false)
+      setPd(r.data.paydunya); setKeys({ masterKey: '', privateKey: '', token: '' }); setEditKeys(false); refreshOnline()
       flash('Clés vérifiées et enregistrées : vos clients peuvent payer en ligne.')
     } catch (e) { setError(e.response?.data?.message || 'Enregistrement impossible. Réessayez.') }
     finally { setSaving(false) }
@@ -77,13 +82,13 @@ export default function PaiementsPage() {
   const toggleMethod = async (key) => {
     const next = pd.methods.map((m) => (m.key === key ? { ...m, enabled: !m.enabled } : m))
     setPd({ ...pd, methods: next })
-    try { const r = await updatePaydunya({ methods: next.filter((m) => m.enabled).map((m) => m.key) }); setPd(r.data.paydunya) }
+    try { const r = await updatePaydunya({ methods: next.filter((m) => m.enabled).map((m) => m.key) }); setPd(r.data.paydunya); refreshOnline() }
     catch (_) { setPd(pd); setError('Modification non enregistrée. Réessayez.') }
   }
 
   const removeKeys = async () => {
     setSaving(true); setError('')
-    try { const r = await updatePaydunya({ remove: true }); setPd(r.data.paydunya); setConfirmDel(false); flash('Clés retirées : le paiement en ligne est désactivé.') }
+    try { const r = await updatePaydunya({ remove: true }); setPd(r.data.paydunya); setConfirmDel(false); refreshOnline(); flash('Clés retirées : le paiement en ligne est désactivé.') }
     catch (_) { setError('Suppression impossible. Réessayez.') }
     finally { setSaving(false) }
   }
@@ -96,7 +101,7 @@ export default function PaiementsPage() {
   const saveWave = async () => {
     if (!wave.apiKey || !wave.webhookSecret) { setWaveMsg('Les deux champs sont requis.'); return }
     setWaveBusy(true); setWaveMsg('')
-    try { await api.patch('/api/auth/payment', { waveApiKey: wave.apiKey, waveWebhookSecret: wave.webhookSecret }); setWaveMsg('Enregistré.') }
+    try { await api.patch('/api/auth/payment', { waveApiKey: wave.apiKey, waveWebhookSecret: wave.webhookSecret }); setWaveMsg('Enregistré.'); refreshOnline() }
     catch (_) { setWaveMsg('Erreur lors de la sauvegarde.') }
     finally { setWaveBusy(false) }
   }
@@ -112,7 +117,7 @@ export default function PaiementsPage() {
   const showForm   = !configured || editKeys
   const enabledCount = (pd?.methods || []).filter((m) => m.enabled).length
 
-  const tabs = platform && (
+  const tabs = (
     <div role="tablist" aria-label="Sections de la page Paiements" className="grid grid-cols-2 sm:inline-grid gap-1 bg-gray-100 rounded-xl p-1">
       {[['history', 'Historique'], ['settings', 'Réglages']].map(([k, label]) => (
         <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
@@ -121,11 +126,14 @@ export default function PaiementsPage() {
     </div>
   )
 
-  if (platform && tab === 'history') return (
-    <DashboardLayout title="Paiements" subtitle="Chaque paiement en ligne arrive automatiquement sur votre numéro">
+  // Paiement en ligne actif : Skanema encaisse, ou les clients peuvent payer avec les clés du marchand
+  const onlineActive = platform || onlinePay
+
+  if (tab === 'history') return (
+    <DashboardLayout title="Paiements" subtitle={platform ? 'Chaque paiement en ligne arrive automatiquement sur votre numéro' : 'Ce que vous avez encaissé, commande par commande'}>
       <div className="max-w-5xl space-y-5">
         {tabs}
-        <PayoutHistory payout={payout} onSettings={() => setTab('settings')} />
+        <PayoutHistory payout={payout} online={{ platform, active: onlineActive }} onSettings={() => setTab('settings')} />
       </div>
     </DashboardLayout>
   )
