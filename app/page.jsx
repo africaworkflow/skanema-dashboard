@@ -20,7 +20,8 @@ const ORG = {
   sameAs        : [
     'https://www.instagram.com/appskanema/',
     'https://www.facebook.com/profile.php?id=61573896037799',
-    'https://x.com/getskanema',
+    'https://x.com/appskanema',
+    'https://www.tiktok.com/@appskanema',
   ],
   contactPoint  : {
     '@type'          : 'ContactPoint',

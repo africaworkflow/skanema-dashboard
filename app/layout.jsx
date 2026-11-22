@@ -56,8 +56,8 @@ export const metadata = {
 
   twitter: {
     card       : 'summary_large_image',
-    site       : '@getskanema',
-    creator    : '@getskanema',
+    site       : '@appskanema',
+    creator    : '@appskanema',
     title      : 'Skanema — Commandes et paiements WhatsApp pour commerçants',
     description: 'Commande. Paie. Reçois. Vos clients commandent et paient par Wave ou Orange Money sans quitter WhatsApp.',
     images     : ['/og-image.png'],
