@@ -17,6 +17,24 @@ function urlBase64ToUint8Array(base64String) {
   return buffer
 }
 
+// Abonnement push de cet appareil : le crée s'il manque, puis l'enregistre sur le serveur.
+// Renvoie true quand le serveur l'a bien enregistré.
+async function syncPushSubscription() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !VAPID_PUB_KEY) return false
+  await navigator.serviceWorker.register('/sw.js')
+  const reg = await navigator.serviceWorker.ready
+  const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({
+    userVisibleOnly     : true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUB_KEY),
+  })
+  const res = await fetch(`${API_URL}/api/push/subscribe`, {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Cookies.get('skanema_token')}` },
+    body   : JSON.stringify(sub.toJSON()),
+  })
+  return res.ok
+}
+
 function detectDevice() {
   if (typeof navigator === 'undefined') return 'desktop'
   const ua = navigator.userAgent
@@ -120,7 +138,7 @@ function IOSGuide({ onDismiss }) {
 }
 
 // ── Bannière push ────────────────────────────────────────────────
-function PushBanner({ onActivate, onDismiss, loading }) {
+function PushBanner({ onActivate, onDismiss, loading, failed }) {
   return (
     <div className="flex items-start gap-3 bg-gray-900 rounded-xl px-4 py-3.5 mb-5">
       <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -129,6 +147,7 @@ function PushBanner({ onActivate, onDismiss, loading }) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-white">Activez les notifications</p>
         <p className="text-xs text-gray-400 mt-0.5">Recevez une alerte à chaque nouvelle commande, même app fermée.</p>
+        {failed && <p className="text-xs text-red-400 mt-1">Activation impossible. Réessayez.</p>}
         <div className="flex items-center gap-2 mt-2.5">
           <button onClick={onActivate} disabled={loading}
             className="text-xs font-semibold bg-white text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1.5">
@@ -157,6 +176,8 @@ export function SmartBanner() {
   const [pushLoading,  setPushLoading]  = useState(false)
   const [showIOSGuide, setShowIOSGuide] = useState(false)
   const [pushDismissed, setPushDismissed] = useState(false)
+  const [subscribed,   setSubscribed]   = useState(null)   // null = pas encore vérifié
+  const [pushFailed,   setPushFailed]   = useState(false)
 
   useEffect(() => {
     const d = detectDevice()
@@ -172,30 +193,33 @@ export function SmartBanner() {
     setMounted(true)
   }, [])
 
+  // Notifications déjà autorisées : on vérifie à chaque ouverture que cet appareil est bien abonné.
+  // Une autorisation ne suffit pas : après une réinstallation de l'application, l'abonnement n'existe plus.
+  const logged = Boolean(user)
+  useEffect(() => {
+    if (!mounted || !logged || device === 'desktop' || pushStatus !== 'granted') return
+    if (subscribed !== null) return   // déjà fait (par exemple juste après l'appui sur « Activer »)
+    let live = true
+    syncPushSubscription()
+      .then((ok) => live && setSubscribed(ok))
+      .catch((err) => { console.error('Push error:', err); if (live) setSubscribed(false) })
+    return () => { live = false }
+  }, [mounted, logged, device, pushStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleActivatePush = async () => {
     if (device === 'ios' && !standalone) {
       setShowIOSGuide(true)
       return
     }
-    setPushLoading(true)
+    setPushLoading(true); setPushFailed(false)
     try {
       const permission = await Notification.requestPermission()
-      setPushStatus(permission)
       if (permission === 'granted') {
-        const reg = await navigator.serviceWorker.register('/sw.js')
-        await navigator.serviceWorker.ready
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly     : true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUB_KEY),
-        })
-        const token = Cookies.get('skanema_token')
-        await fetch(`${API_URL}/api/push/subscribe`, {
-          method : 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body   : JSON.stringify(sub.toJSON()),
-        })
+        const ok = await syncPushSubscription()
+        setSubscribed(ok); setPushFailed(!ok)
       }
-    } catch (err) { console.error('Push error:', err) }
+      setPushStatus(permission)
+    } catch (err) { console.error('Push error:', err); setSubscribed(false); setPushFailed(true) }
     finally { setPushLoading(false) }
   }
 
@@ -210,6 +234,8 @@ export function SmartBanner() {
 
   const emailUnverified = user.emailVerified === false
   const pushGranted     = pushStatus === 'granted'
+  // À proposer : pas encore autorisé, ou autorisé mais l'abonnement de cet appareil n'a pas pu être enregistré
+  const pushToActivate  = !pushGranted || subscribed === false
   const isDesktop       = device === 'desktop'
   const pushUnsupported = device === 'desktop' ||
     (device !== 'ios' && !('Notification' in window) && !('serviceWorker' in navigator))
@@ -218,9 +244,9 @@ export function SmartBanner() {
   if (emailUnverified) return <EmailBanner />
 
   // Priorité 2 — Push non activé sur mobile
-  if (!isDesktop && !pushGranted && !pushUnsupported && !pushDismissed) {
+  if (!isDesktop && pushToActivate && !pushUnsupported && !pushDismissed) {
     if (showIOSGuide) return <IOSGuide onDismiss={handleDismiss} />
-    return <PushBanner onActivate={handleActivatePush} onDismiss={handleDismiss} loading={pushLoading} />
+    return <PushBanner onActivate={handleActivatePush} onDismiss={handleDismiss} loading={pushLoading} failed={pushFailed} />
   }
 
   return null
