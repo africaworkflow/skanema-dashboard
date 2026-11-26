@@ -202,7 +202,7 @@ export default function MenuPage() {
   return (
     <DashboardLayout
       title="Menu"
-      subtitle={`${usedCount} / ${maxItems === 999 ? '∞' : maxItems} plats disponibles · Plan ${currentPlan}`}
+      subtitle={`${usedCount} / ${maxItems === 999 ? '∞' : maxItems} plats · Plan ${currentPlan}`}
       actions={
         <PlanGate
           currentPlan={currentPlan}
