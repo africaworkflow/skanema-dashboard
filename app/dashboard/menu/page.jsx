@@ -234,7 +234,7 @@ export default function MenuPage() {
       {maxItems !== 999 && (
         <div className="mb-5 bg-white border border-gray-100 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500">Plats disponibles</span>
+            <span className="text-xs text-gray-500">Plats utilisés</span>
             <span className="text-xs font-medium text-gray-900">{usedCount} / {maxItems}</span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
