@@ -41,6 +41,8 @@ export default function MenuPage() {
   const [deleting,   setDeleting]   = useState(null)
   const [toggling,   setToggling]   = useState(null)
   const [error,      setError]      = useState('')
+  const [tried,      setTried]      = useState(false)   // « Ajouter » cliqué avec des champs manquants
+  const [notice,     setNotice]     = useState('')      // refus affiché en haut de la page (interrupteur « Disponible »)
   const [deleteConf, setDeleteConf] = useState(null)
   const [showOptions,setShowOptions]= useState(false)
   const [showCatPicker, setShowCatPicker] = useState(false)
@@ -59,18 +61,22 @@ export default function MenuPage() {
   useEffect(() => { load() }, [])
   useEffect(() => { if (modal) setTimeout(() => firstInput.current?.focus(), 120) }, [modal])
 
-  const atLimit = items.length >= maxItems
+  // La limite du plan porte sur les plats disponibles (même règle que le serveur)
+  const usedCount = items.filter(i => i.available).length
+  const atLimit = usedCount >= maxItems
 
   const openCreate = () => {
     setEditing(null)
     setForm(EMPTY_FORM)
     setError('')
+    setTried(false)
     setShowOptions(false)
     setModal(true)
   }
 
   const openEdit = (item) => {
     setEditing(item)
+    setTried(false)
     setForm({
       name           : item.name,
       description    : item.description,
@@ -88,6 +94,7 @@ export default function MenuPage() {
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.price || !form.imageUrl.trim()) {
+      setTried(true)
       setError('Nom, prix et image sont obligatoires.')
       return
     }
@@ -121,7 +128,10 @@ export default function MenuPage() {
     try {
       await toggleItem(item._id, !item.available)
       setItems(prev => prev.map(i => i._id === item._id ? { ...i, available: !i.available } : i))
-    } catch (_) {}
+      setNotice('')
+    } catch (err) {
+      setNotice(err.response?.data?.message || 'Modification impossible. Réessayez.')
+    }
     finally { setToggling(null) }
   }
 
@@ -192,7 +202,7 @@ export default function MenuPage() {
   return (
     <DashboardLayout
       title="Menu"
-      subtitle={`${items.length} / ${maxItems === 999 ? '∞' : maxItems} plats · Plan ${currentPlan}`}
+      subtitle={`${usedCount} / ${maxItems === 999 ? '∞' : maxItems} plats disponibles · Plan ${currentPlan}`}
       actions={
         <PlanGate
           currentPlan={currentPlan}
@@ -212,17 +222,25 @@ export default function MenuPage() {
     >
       <NextStepBanner current="menu" done={!loading && items.length > 0} />
 
+      {notice && (
+        <div role="alert" className="mb-5 flex items-start gap-2 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+          <AlertTriangle size={15} className="text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-700 flex-1">{notice}</p>
+          <button onClick={() => setNotice('')} aria-label="Fermer" className="text-red-400 hover:text-red-600"><X size={15} /></button>
+        </div>
+      )}
+
       {/* Barre de progression plan */}
       {maxItems !== 999 && (
         <div className="mb-5 bg-white border border-gray-100 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500">Plats utilisés</span>
-            <span className="text-xs font-medium text-gray-900">{items.length} / {maxItems}</span>
+            <span className="text-xs text-gray-500">Plats disponibles</span>
+            <span className="text-xs font-medium text-gray-900">{usedCount} / {maxItems}</span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
             <div
               className="h-full bg-gray-900 rounded-full transition-all"
-              style={{ width: `${Math.min(100, (items.length / maxItems) * 100)}%` }}
+              style={{ width: `${Math.min(100, (usedCount / maxItems) * 100)}%` }}
             />
           </div>
         </div>
@@ -312,11 +330,11 @@ export default function MenuPage() {
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Nom du plat *</label>
                 <input ref={firstInput} value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
-                  placeholder="Ex: Thiéboudienne Rouge" className="input" maxLength={100} />
+                  placeholder="Ex: Thiéboudienne Rouge" className={`input ${tried && !form.name.trim() ? 'border-red-400' : ''}`} maxLength={100} />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">Description *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Description</label>
                 <textarea value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))}
                   placeholder="Décrivez le plat en quelques mots…" rows={3} maxLength={500} className="input resize-none" />
                 <p className="text-2xs text-gray-400 mt-1 text-right">{form.description.length}/500</p>
@@ -326,7 +344,7 @@ export default function MenuPage() {
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Prix (FCFA) *</label>
                   <input type="number" value={form.price} onChange={e => setForm(f => ({...f, price: e.target.value}))}
-                    placeholder="3500" min={0} className="input" />
+                    placeholder="3500" min={0} className={`input ${tried && !form.price ? 'border-red-400' : ''}`} />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Préparation (min)</label>
@@ -408,7 +426,9 @@ export default function MenuPage() {
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Image du plat *</label>
-                <ImageUpload value={form.imageUrl} onChange={url => setForm(f => ({...f, imageUrl: url}))} />
+                <div className={tried && !form.imageUrl.trim() ? 'rounded-xl ring-1 ring-red-400' : ''}>
+                  <ImageUpload value={form.imageUrl} onChange={url => setForm(f => ({...f, imageUrl: url}))} />
+                </div>
               </div>
 
               <div className="flex items-center justify-between py-1">
@@ -511,21 +531,23 @@ export default function MenuPage() {
                 )}
               </div>
 
+            </div>
+
+            {/* Footer : le message d'erreur reste visible, quel que soit le défilement du formulaire */}
+            <div className="px-5 py-4 border-t border-gray-100 flex-shrink-0">
               {error && (
-                <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5">
+                <div role="alert" className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 mb-3">
                   <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />
                   <p className="text-xs text-red-600">{error}</p>
                 </div>
               )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 flex gap-3 flex-shrink-0">
-              <button onClick={() => setModal(false)} className="btn-ghost flex-1">Annuler</button>
-              <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
-                {saving && <Loader2 size={13} className="animate-spin" />}
-                {saving ? 'Enregistrement…' : editing ? 'Modifier' : 'Ajouter'}
-              </button>
+              <div className="flex gap-3">
+                <button onClick={() => setModal(false)} className="btn-ghost flex-1">Annuler</button>
+                <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                  {saving && <Loader2 size={13} className="animate-spin" />}
+                  {saving ? 'Enregistrement…' : editing ? 'Modifier' : 'Ajouter'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
