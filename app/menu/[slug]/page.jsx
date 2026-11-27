@@ -326,6 +326,8 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
   const [ordering,     setOrdering]     = useState(false)
   const [orderError,   setOrderError]   = useState('')
   const [orderSuccess, setOrderSuccess] = useState(false)
+  // Restaurant fermé : pas de commande. Connu à l'ouverture du catalogue, ou appris du serveur si l'heure de fermeture est passée entre-temps.
+  const [closed, setClosed] = useState(restaurant.isOpen === false ? { reopens: restaurant.reopens || '' } : null)
 
   const handleOrder = async () => {
     setOrdering(true)
@@ -337,6 +339,7 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
         body   : JSON.stringify({ slug, sid: sid || null, items: items.map(i => ({ menuItemId: i.id, quantity: i.qty, options: i.options || [] })) }),
       })
       const data = await res.json()
+      if (data.closed) { setClosed({ reopens: data.reopens || '' }); return }
       if (!data.success) { setOrderError(data.message || 'Erreur.'); return }
       if (data.sent) { setOrderSuccess(true) }
       else { window.location.href = 'https://wa.me/' + (restaurant.phone?.replace(/\D/g, '') || '') + '?text=' + encodeURIComponent(data.token) }
@@ -418,6 +421,11 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
             <div className="flex justify-between text-base font-bold text-gray-900 border-t border-gray-100 pt-3 mt-2"><span>Total estimé</span><span>{formatFCFA(subtotal)}</span></div>
           </div>
           {orderError && <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 mb-3"><p className="text-xs text-red-600 text-center">{orderError}</p></div>}
+          {closed ? (
+            <button disabled className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center bg-gray-500">
+              Fermé{closed.reopens ? ` · ${closed.reopens}` : ''}
+            </button>
+          ) : (<>
           <button onClick={handleOrder} disabled={ordering}
             className="w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-3 active:scale-[0.98] transition-all disabled:opacity-70"
             style={{ background: '#075E54' }}>
@@ -429,6 +437,7 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
           <p className="text-center text-xs text-gray-400 mt-3">
             {sid ? 'Commande envoyée automatiquement sur WhatsApp' : 'Vous serez redirigé vers WhatsApp'}
           </p>
+          </>)}
         </div>
       )}
     </div>
