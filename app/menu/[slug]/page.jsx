@@ -417,7 +417,7 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
         ))}
       </div>
       {items.length > 0 && (
-        <div className="bg-white border-t border-gray-100 px-4 pt-4 pb-8 flex-shrink-0 sticky bottom-0">
+        <div className="bg-white border-t border-gray-100 px-4 pt-4 flex-shrink-0 sticky bottom-0" style={{ paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}>
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm"><span className="text-gray-500">Sous-total</span><span className="font-medium text-gray-900">{formatFCFA(subtotal)}</span></div>
             <div className="flex justify-between text-sm"><span className="text-gray-500 flex items-center gap-1"><MapPin size={12} /> Livraison</span><span className="text-gray-400">Calculée à la commande</span></div>
