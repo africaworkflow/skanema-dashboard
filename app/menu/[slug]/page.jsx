@@ -373,7 +373,7 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
   )
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50" style={{ minHeight: '100dvh' }}>
       <div className="bg-white border-b border-gray-100 px-4 py-4 flex items-center gap-3 flex-shrink-0">
         <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ChevronLeft size={20} className="text-gray-700" />
@@ -414,7 +414,7 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
         ))}
       </div>
       {items.length > 0 && (
-        <div className="bg-white border-t border-gray-100 px-4 pt-4 pb-8 flex-shrink-0">
+        <div className="bg-white border-t border-gray-100 px-4 pt-4 pb-8 flex-shrink-0 sticky bottom-0">
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm"><span className="text-gray-500">Sous-total</span><span className="font-medium text-gray-900">{formatFCFA(subtotal)}</span></div>
             <div className="flex justify-between text-sm"><span className="text-gray-500 flex items-center gap-1"><MapPin size={12} /> Livraison</span><span className="text-gray-400">Calculée à la commande</span></div>
