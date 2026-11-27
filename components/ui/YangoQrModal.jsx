@@ -3,6 +3,12 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { X, Copy, Check, Smartphone } from 'lucide-react'
 
+// 221777811371 → « 221 77 781 13 71 » : plus facile à recopier sans se tromper. Les autres numéros restent tels quels.
+export function formatPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '')
+  return /^221\d{9}$/.test(d) ? `${d.slice(0, 3)} ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : String(phone || '')
+}
+
 // Sur ordinateur (comptoir) : la course Yango s'ouvre sur le téléphone en scannant ce QR code.
 export function YangoQrModal({ link, order, onClose }) {
   const [svg,    setSvg]    = useState('')
@@ -45,7 +51,7 @@ export function YangoQrModal({ link, order, onClose }) {
         <div className="mt-5 bg-gray-50 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-2xs text-gray-400">Destinataire à indiquer dans Yango</p>
-            <p className="text-sm font-semibold text-gray-900 tabular-nums">{order.customerPhone}</p>
+            <p className="text-sm font-semibold text-gray-900 tabular-nums">{formatPhone(order.customerPhone)}</p>
           </div>
           <button onClick={copyPhone} className="btn-ghost text-xs py-1.5 flex items-center gap-1.5 flex-shrink-0">
             {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />} {copied ? 'Copié' : 'Copier'}
