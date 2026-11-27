@@ -329,6 +329,9 @@ function CartView({ cart, restaurant, onBack, onAdd, onRemove, slug, sid }) {
   // Restaurant fermé : pas de commande. Connu à l'ouverture du catalogue, ou appris du serveur si l'heure de fermeture est passée entre-temps.
   const [closed, setClosed] = useState(restaurant.isOpen === false ? { reopens: restaurant.reopens || '' } : null)
 
+  // Le panier s'ouvre en haut (titre et retour visibles), même si on avait fait défiler le menu
+  useEffect(() => { window.scrollTo(0, 0) }, [])
+
   const handleOrder = async () => {
     setOrdering(true)
     setOrderError('')
@@ -458,6 +461,7 @@ export default function MenuPage() {
   const [search,     setSearch]     = useState('')
   const [activeCat,  setActiveCat]  = useState('Tous')
   const [showCart,   setShowCart]   = useState(false)
+  const menuScroll = useRef(0)   // où en était le menu à l'ouverture du panier, pour y revenir au retour
   const [detail,     setDetail]     = useState(null)
 
   useEffect(() => {
@@ -538,7 +542,7 @@ export default function MenuPage() {
   )
 
   if (showCart) return (
-    <CartView cart={cart} restaurant={restaurant} onBack={() => setShowCart(false)}
+    <CartView cart={cart} restaurant={restaurant} onBack={() => { setShowCart(false); requestAnimationFrame(() => window.scrollTo(0, menuScroll.current)) }}
       onAdd={addToCart} onRemove={removeFromCart} slug={slug} sid={sid} />
   )
 
@@ -598,7 +602,7 @@ export default function MenuPage() {
       {cartCount > 0 && (
         <div className="fixed bottom-0 z-20 px-4 pb-6 pt-3 bg-white border-t border-gray-100"
              style={{ maxWidth: '480px', width: '100%', left: '50%', transform: 'translateX(-50%)' }}>
-          <button onClick={() => setShowCart(true)}
+          <button onClick={() => { menuScroll.current = window.scrollY; setShowCart(true) }}
             className="w-full text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-between px-5 active:scale-[0.98] transition-all"
             style={{ background: '#111827' }}>
             <div className="bg-white/20 rounded-lg px-2 py-1 text-xs font-bold">{cartCount}</div>
